@@ -12,6 +12,18 @@ class SigninScreen extends StatelessWidget {
 
   SigninScreen({Key? key}) : super(key: key);
 
+  // Static map to store user data temporarily (in-memory storage)
+  static Map<String, String> userData = {};
+
+  Future<void> _saveUserData() async {
+    // Store data in memory instead of SharedPreferences
+    userData['user_name'] = nameController.text;
+    userData['user_pet_name'] = petNameController.text;
+    userData['user_email'] = emailController.text;
+    userData['user_password'] = passwordController.text;
+    userData['user_age'] = ageController.text;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -76,7 +88,50 @@ class SigninScreen extends StatelessWidget {
               const SizedBox(height: 24),
               ElevatedButton(
                 onPressed: () {
-                  // TODO: Handle submit logic
+                  // Validate all fields are filled
+                  if (nameController.text.isEmpty ||
+                      petNameController.text.isEmpty ||
+                      emailController.text.isEmpty ||
+                      passwordController.text.isEmpty ||
+                      confirmPasswordController.text.isEmpty ||
+                      ageController.text.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Please fill all fields')),
+                    );
+                    return;
+                  }
+
+                  // Validate password match
+                  if (passwordController.text !=
+                      confirmPasswordController.text) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Passwords do not match')),
+                    );
+                    return;
+                  }
+
+                  // Store user data in local storage
+                  _saveUserData()
+                      .then((_) {
+                        // Show success message
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Account created successfully!'),
+                          ),
+                        );
+
+                        // Navigate back to login screen
+                        Navigator.of(context).pushReplacement(
+                          MaterialPageRoute(
+                            builder: (context) => LoginScreen(),
+                          ),
+                        );
+                      })
+                      .catchError((error) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Error: ${error.toString()}')),
+                        );
+                      });
                 },
                 child: const Text('Submit'),
               ),

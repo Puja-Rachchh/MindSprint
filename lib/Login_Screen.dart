@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'Signin_Screen.dart';
+import 'Dashboard_Screen.dart';
 
 class LoginScreen extends StatelessWidget {
   final TextEditingController emailController = TextEditingController();
@@ -33,7 +34,39 @@ class LoginScreen extends StatelessWidget {
               ),
               obscureText: true,
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () {
+                // Validate login credentials against stored data
+                String storedEmail = SigninScreen.userData['user_email'] ?? '';
+                String storedPassword =
+                    SigninScreen.userData['user_password'] ?? '';
+
+                if (emailController.text.isEmpty ||
+                    passwordController.text.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Please enter email and password'),
+                    ),
+                  );
+                } else if (emailController.text == storedEmail &&
+                    passwordController.text == storedPassword) {
+                  // Login successful
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(
+                      builder: (context) => const DashboardScreen(),
+                    ),
+                  );
+                } else {
+                  // Invalid credentials
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Invalid email or password')),
+                  );
+                }
+              },
+              child: const Text('Login'),
+            ),
+            const SizedBox(height: 16),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
