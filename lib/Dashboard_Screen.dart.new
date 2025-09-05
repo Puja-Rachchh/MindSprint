@@ -16,11 +16,52 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Map<String, dynamic>? _productInfo;
   bool _isLoading = false;
 
+  Future<void> _fetchNutritionalInfo(String barcode) async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final response = await http.get(
+        Uri.parse('https://world.openfoodfacts.org/api/v0/product/$barcode.json'),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['status'] == 1) {
+          setState(() {
+            _productInfo = data['product'];
+            _isLoading = false;
+          });
+          _showNutritionalInfo();
+        } else {
+          _showError('Product not found');
+        }
+      } else {
+        _showError('Failed to fetch product information');
+      }
+    } catch (e) {
+      _showError('Error: ${e.toString()}');
+    }
+  }
+
+  void _showError(String message) {
+    setState(() {
+      _isLoading = false;
+    });
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message)),
+      );
+    }
+  }
+
   Future<void> _startScanner() async {
     final status = await Permission.camera.request();
     if (!mounted) return;
     
     if (status.isGranted) {
+      if (!mounted) return;
       showModalBottomSheet(
         context: context,
         isScrollControlled: true,
@@ -65,51 +106,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
       );
     } else {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Camera permission is required to scan barcodes'),
           duration: Duration(seconds: 2),
         ),
-      );
-    }
-  }
-
-  Future<void> _fetchNutritionalInfo(String barcode) async {
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      final response = await http.get(
-        Uri.parse('https://world.openfoodfacts.org/api/v0/product/$barcode.json'),
-      );
-
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        if (data['status'] == 1) {
-          setState(() {
-            _productInfo = data['product'];
-            _isLoading = false;
-          });
-          _showNutritionalInfo();
-        } else {
-          _showError('Product not found');
-        }
-      } else {
-        _showError('Failed to fetch product information');
-      }
-    } catch (e) {
-      _showError('Error: ${e.toString()}');
-    }
-  }
-
-  void _showError(String message) {
-    setState(() {
-      _isLoading = false;
-    });
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message)),
       );
     }
   }

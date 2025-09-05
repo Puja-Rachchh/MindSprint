@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'Login_Screen.dart';
+import 'screens/barcode_scanner_screen.dart';
 
 void main() {
   runApp(const MyApp());
