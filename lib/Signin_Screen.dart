@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'Login_Screen.dart';
+import 'Detail_Screen.dart';
 
 class SigninScreen extends StatelessWidget {
   final TextEditingController nameController = TextEditingController();
@@ -120,10 +121,10 @@ class SigninScreen extends StatelessWidget {
                           ),
                         );
 
-                        // Navigate back to login screen
+                        // Navigate to detail screen
                         Navigator.of(context).pushReplacement(
                           MaterialPageRoute(
-                            builder: (context) => LoginScreen(),
+                            builder: (context) => DetailScreen(),
                           ),
                         );
                       })
