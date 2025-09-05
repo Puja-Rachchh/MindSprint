@@ -1,0 +1,266 @@
+import 'package:flutter/material.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:permission_handler/permission_handler.dart';
+
+class DashboardScreen extends StatefulWidget {
+  const DashboardScreen({Key? key}) : super(key: key);
+
+  @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  final MobileScannerController cameraController = MobileScannerController();
+  Map<String, dynamic>? _productInfo;
+  bool _isLoading = false;
+
+  Future<void> _fetchNutritionalInfo(String barcode) async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final response = await http.get(
+        Uri.parse('https://world.openfoodfacts.org/api/v0/product/$barcode.json'),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['status'] == 1) {
+          setState(() {
+            _productInfo = data['product'];
+            _isLoading = false;
+          });
+          _showNutritionalInfo();
+        } else {
+          _showError('Product not found');
+        }
+      } else {
+        _showError('Failed to fetch product information');
+      }
+    } catch (e) {
+      _showError('Error: ${e.toString()}');
+    }
+  }
+
+  void _showError(String message) {
+    setState(() {
+      _isLoading = false;
+    });
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(message)),
+      );
+    }
+  }
+
+  Future<void> _startScanner() async {
+    final status = await Permission.camera.request();
+    if (!mounted) return;
+    
+    if (status.isGranted) {
+      if (!mounted) return;
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        builder: (context) => DraggableScrollableSheet(
+          initialChildSize: 0.9,
+          maxChildSize: 0.9,
+          minChildSize: 0.5,
+          expand: false,
+          builder: (context, scrollController) {
+            return Scaffold(
+              appBar: AppBar(
+                title: const Text('Scan Barcode'),
+              ),
+              body: Column(
+                children: [
+                  Expanded(
+                    child: MobileScanner(
+                      controller: cameraController,
+                      onDetect: (capture) {
+                        final List<Barcode> barcodes = capture.barcodes;
+                        for (final barcode in barcodes) {
+                          if (barcode.rawValue != null) {
+                            Navigator.pop(context); // Close scanner
+                            _fetchNutritionalInfo(barcode.rawValue!);
+                            return;
+                          }
+                        }
+                      },
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Text(
+                      'Point camera at food product barcode',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+      );
+    } else {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Camera permission is required to scan barcodes'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
+  }
+
+  void _showNutritionalInfo() {
+    if (_productInfo == null) return;
+
+    final nutriments = _productInfo!['nutriments'] ?? {};
+    final allergens = _productInfo!['allergens_tags'] ?? [];
+    final productName = _productInfo!['product_name'] ?? 'Unknown Product';
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.9,
+        maxChildSize: 0.9,
+        minChildSize: 0.5,
+        expand: false,
+        builder: (context, scrollController) {
+          return SingleChildScrollView(
+            controller: scrollController,
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  productName,
+                  style: Theme.of(context).textTheme.headlineSmall,
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  'Nutritional Information (per 100g)',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 10),
+                _buildNutrientRow('Calories', nutriments['energy-kcal_100g']),
+                _buildNutrientRow('Proteins', nutriments['proteins_100g']),
+                _buildNutrientRow('Carbohydrates', nutriments['carbohydrates_100g']),
+                _buildNutrientRow('Fat', nutriments['fat_100g']),
+                _buildNutrientRow('Sugars', nutriments['sugars_100g']),
+                _buildNutrientRow('Fiber', nutriments['fiber_100g']),
+                if (allergens.isNotEmpty) ...[
+                  const SizedBox(height: 20),
+                  const Text(
+                    'Allergen Warning',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.red,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    allergens.join(', ').replaceAll('en:', ''),
+                    style: const TextStyle(color: Colors.red),
+                  ),
+                ],
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildNutrientRow(String label, dynamic value) {
+    final displayValue = value != null ? '${value.toStringAsFixed(2)}g' : 'N/A';
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label),
+          Text(displayValue),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Dashboard'),
+        automaticallyImplyLeading: false,
+      ),
+      body: Stack(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    'Welcome to Dashboard',
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 40),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton.icon(
+                      onPressed: _startScanner,
+                      icon: const Icon(Icons.qr_code_scanner),
+                      label: const Text('Scan BarCode'),
+                      style: ElevatedButton.styleFrom(
+                        textStyle: const TextStyle(fontSize: 18),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Upload Image clicked')),
+                        );
+                      },
+                      icon: const Icon(Icons.upload_file),
+                      label: const Text('Upload Image'),
+                      style: ElevatedButton.styleFrom(
+                        textStyle: const TextStyle(fontSize: 18),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          if (_isLoading)
+            Container(
+              color: Colors.black54,
+              child: const Center(
+                child: CircularProgressIndicator(),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    cameraController.dispose();
+    super.dispose();
+  }
+}
