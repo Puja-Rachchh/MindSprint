@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'screens/diet_plan_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({Key? key}) : super(key: key);
@@ -1187,19 +1188,924 @@ class _DashboardScreenState extends State<DashboardScreen>
   }
 
   Widget _buildNutrifyPage() {
-    return const Center(
-      child: Text(
-        'Nutrify Page',
-        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(20.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header Section
+          Container(
+            padding: const EdgeInsets.all(20.0),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [Color(0xFF2E8B57), Color(0xFF3CB371)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(15),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  '🥗 Nutrify Hub',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                const Text(
+                  'Create personalized diet plans tailored to your goals and preferences',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.white,
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 30),
+
+          // Diet Plan Generator Card
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(20.0),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(15),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.1),
+                  spreadRadius: 0,
+                  blurRadius: 10,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF2E8B57).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(
+                        Icons.restaurant_menu,
+                        color: Color(0xFF2E8B57),
+                        size: 24,
+                      ),
+                    ),
+                    const SizedBox(width: 15),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Personalized Diet Plan Generator',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          SizedBox(height: 5),
+                          Text(
+                            'Get a customized meal plan based on your goals',
+                            style: TextStyle(color: Colors.grey, fontSize: 14),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  'Features included:',
+                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+                ),
+                const SizedBox(height: 10),
+                ...[
+                      '• Personalized calorie targets',
+                      '• Custom meal plans based on preferences',
+                      '• Allergy and dietary restriction support',
+                      '• Activity level considerations',
+                      '• Macro-nutrient breakdown',
+                      '• Nutrition tips and guidance',
+                    ]
+                    .map(
+                      (feature) => Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 3),
+                        child: Text(
+                          feature,
+                          style: const TextStyle(
+                            color: Colors.black87,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    )
+                    .toList(),
+                const SizedBox(height: 25),
+                Container(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const DietPlanScreen(),
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF2E8B57),
+                      foregroundColor: Colors.white,
+                      elevation: 3,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(25),
+                      ),
+                    ),
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.auto_awesome, size: 20),
+                        SizedBox(width: 8),
+                        Text(
+                          'Create My Diet Plan',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 20),
+
+          // Quick Stats Card (if user has existing plan)
+          if (SigninScreen.userData['diet_goal'] != null) ...[
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20.0),
+              decoration: BoxDecoration(
+                color: Colors.blue[50],
+                borderRadius: BorderRadius.circular(15),
+                border: Border.all(color: Colors.blue[200]!),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.insights, color: Colors.blue[700]),
+                      const SizedBox(width: 10),
+                      Text(
+                        'Your Current Plan',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue[700],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 15),
+                  Text(
+                    'Goal: ${SigninScreen.userData['diet_goal'] ?? 'Not set'}',
+                    style: TextStyle(color: Colors.blue[700]),
+                  ),
+                  if (SigninScreen.userData['diet_type'] != null)
+                    Text(
+                      'Diet Type: ${SigninScreen.userData['diet_type']}',
+                      style: TextStyle(color: Colors.blue[700]),
+                    ),
+                  const SizedBox(height: 15),
+                  Container(
+                    width: double.infinity,
+                    child: OutlinedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const DietPlanScreen(),
+                          ),
+                        );
+                      },
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(color: Colors.blue[600]!),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                      ),
+                      child: Text(
+                        'Update My Plan',
+                        style: TextStyle(
+                          color: Colors.blue[700],
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }
 
   Widget _buildStatisticsPage() {
-    return const Center(
-      child: Text(
-        'Statistics Page',
-        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          _buildStatisticsHeader(),
+          const SizedBox(height: 20),
+
+          // Health Overview Cards
+          _buildHealthOverviewSection(),
+          const SizedBox(height: 20),
+
+          // Nutrition Analytics
+          _buildNutritionAnalyticsSection(),
+          const SizedBox(height: 20),
+
+          // Food Activity Stats
+          _buildFoodActivitySection(),
+          const SizedBox(height: 20),
+
+          // Diet Plan Progress
+          _buildDietProgressSection(),
+          const SizedBox(height: 20),
+
+          // Weekly Insights
+          _buildWeeklyInsightsSection(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatisticsHeader() {
+    return Container(
+      padding: const EdgeInsets.all(20.0),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF2E8B57), Color(0xFF3CB371)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(15),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(Icons.analytics, color: Colors.white, size: 28),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Your Health Analytics',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  'Track your nutrition journey',
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.9),
+                    fontSize: 16,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHealthOverviewSection() {
+    // Calculate BMI if height and weight are available
+    String? weightStr = SigninScreen.userData['user_weight'];
+    String? heightStr = SigninScreen.userData['user_height'];
+    double? bmi;
+    String bmiCategory = 'Unknown';
+
+    if (weightStr != null && heightStr != null) {
+      try {
+        double weight = double.parse(weightStr);
+        double height = double.parse(heightStr) / 100; // Convert cm to m
+        bmi = weight / (height * height);
+
+        if (bmi < 18.5) {
+          bmiCategory = 'Underweight';
+        } else if (bmi < 25) {
+          bmiCategory = 'Normal';
+        } else if (bmi < 30) {
+          bmiCategory = 'Overweight';
+        } else {
+          bmiCategory = 'Obese';
+        }
+      } catch (e) {
+        // Handle parsing errors
+      }
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Health Overview',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF2E8B57),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: _buildStatCard(
+                title: 'BMI',
+                value: bmi != null ? bmi.toStringAsFixed(1) : '--',
+                subtitle: bmiCategory,
+                icon: Icons.monitor_weight,
+                color: _getBMIColor(bmi),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildStatCard(
+                title: 'Current Weight',
+                value: weightStr ?? '--',
+                subtitle: 'kg',
+                icon: Icons.fitness_center,
+                color: const Color(0xFF4CAF50),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: _buildStatCard(
+                title: 'Height',
+                value: heightStr ?? '--',
+                subtitle: 'cm',
+                icon: Icons.height,
+                color: const Color(0xFF2196F3),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildStatCard(
+                title: 'Age',
+                value: SigninScreen.userData['user_age'] ?? '--',
+                subtitle: 'years',
+                icon: Icons.cake,
+                color: const Color(0xFF9C27B0),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Color _getBMIColor(double? bmi) {
+    if (bmi == null) return Colors.grey;
+    if (bmi < 18.5) return const Color(0xFF03A9F4); // Light Blue
+    if (bmi < 25) return const Color(0xFF4CAF50); // Green
+    if (bmi < 30) return const Color(0xFFFF9800); // Orange
+    return const Color(0xFFF44336); // Red
+  }
+
+  Widget _buildNutritionAnalyticsSection() {
+    // Mock data for demonstration - in a real app, this would come from actual tracking
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Daily Nutrition',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF2E8B57),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.1),
+                spreadRadius: 1,
+                blurRadius: 8,
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              _buildNutritionProgressBar(
+                'Calories',
+                1520,
+                2000,
+                const Color(0xFFFF5722),
+              ),
+              const SizedBox(height: 16),
+              _buildNutritionProgressBar(
+                'Protein',
+                68,
+                120,
+                const Color(0xFF2196F3),
+              ),
+              const SizedBox(height: 16),
+              _buildNutritionProgressBar(
+                'Carbs',
+                180,
+                250,
+                const Color(0xFFFF9800),
+              ),
+              const SizedBox(height: 16),
+              _buildNutritionProgressBar(
+                'Fat',
+                45,
+                65,
+                const Color(0xFF9C27B0),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildNutritionProgressBar(
+    String nutrient,
+    int current,
+    int target,
+    Color color,
+  ) {
+    double progress = (current / target).clamp(0.0, 1.0);
+
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              nutrient,
+              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+            ),
+            Text(
+              '$current / $target',
+              style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        LinearProgressIndicator(
+          value: progress,
+          backgroundColor: color.withOpacity(0.2),
+          valueColor: AlwaysStoppedAnimation<Color>(color),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFoodActivitySection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Food Activity',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF2E8B57),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.1),
+                spreadRadius: 1,
+                blurRadius: 8,
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildActivityItem(
+                      icon: Icons.qr_code_scanner,
+                      title: 'Products Scanned',
+                      value: '24',
+                      subtitle: 'This week',
+                      color: const Color(0xFF2E8B57),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _buildActivityItem(
+                      icon: Icons.warning_amber,
+                      title: 'Allergen Alerts',
+                      value: '3',
+                      subtitle: 'Avoided',
+                      color: const Color(0xFFFF5722),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildActivityItem(
+                      icon: Icons.favorite,
+                      title: 'Healthy Choices',
+                      value: '18',
+                      subtitle: 'This week',
+                      color: const Color(0xFF4CAF50),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _buildActivityItem(
+                      icon: Icons.restaurant_menu,
+                      title: 'Diet Plan Days',
+                      value: '12',
+                      subtitle: 'Followed',
+                      color: const Color(0xFF9C27B0),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildActivityItem({
+    required IconData icon,
+    required String title,
+    required String value,
+    required String subtitle,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, color: color, size: 20),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.grey.shade700,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+          Text(
+            subtitle,
+            style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDietProgressSection() {
+    String dietGoal = SigninScreen.userData['diet_goal'] ?? 'Not Set';
+    String currentWeight = SigninScreen.userData['current_weight'] ?? '--';
+    String targetWeight = SigninScreen.userData['target_weight'] ?? '--';
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Diet Plan Progress',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF2E8B57),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.1),
+                spreadRadius: 1,
+                blurRadius: 8,
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Current Goal: $dietGoal',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF2E8B57).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: const Text(
+                      'Active',
+                      style: TextStyle(
+                        color: Color(0xFF2E8B57),
+                        fontWeight: FontWeight.w600,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      children: [
+                        Text(
+                          currentWeight,
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF2E8B57),
+                          ),
+                        ),
+                        const Text(
+                          'Current Weight',
+                          style: TextStyle(fontSize: 14, color: Colors.grey),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Icon(Icons.arrow_forward, color: Colors.grey),
+                  Expanded(
+                    child: Column(
+                      children: [
+                        Text(
+                          targetWeight,
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFFFF9800),
+                          ),
+                        ),
+                        const Text(
+                          'Target Weight',
+                          style: TextStyle(fontSize: 14, color: Colors.grey),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildWeeklyInsightsSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Weekly Insights',
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF2E8B57),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.1),
+                spreadRadius: 1,
+                blurRadius: 8,
+              ),
+            ],
+          ),
+          child: Column(
+            children: [
+              _buildInsightItem(
+                icon: Icons.trending_up,
+                title: 'Great Progress!',
+                description:
+                    'You\'ve maintained your diet plan for 5 consecutive days.',
+                color: const Color(0xFF4CAF50),
+              ),
+              const Divider(height: 24),
+              _buildInsightItem(
+                icon: Icons.local_dining,
+                title: 'Protein Goal',
+                description:
+                    'You\'re 15% below your daily protein target. Consider adding lean meats or beans.',
+                color: const Color(0xFFFF9800),
+              ),
+              const Divider(height: 24),
+              _buildInsightItem(
+                icon: Icons.water_drop,
+                title: 'Stay Hydrated',
+                description:
+                    'Remember to drink at least 8 glasses of water daily for optimal health.',
+                color: const Color(0xFF2196F3),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildInsightItem({
+    required IconData icon,
+    required String title,
+    required String description,
+    required Color color,
+  }) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(icon, color: color, size: 24),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 16,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                description,
+                style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatCard({
+    required String title,
+    required String value,
+    required String subtitle,
+    required IconData icon,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 1,
+            blurRadius: 8,
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(icon, color: color, size: 20),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.grey.shade700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+          Text(
+            subtitle,
+            style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+          ),
+        ],
       ),
     );
   }
@@ -1429,14 +2335,17 @@ class _DashboardScreenState extends State<DashboardScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Dashboard'),
+        title: const Text('MindSprint - Nutrition Tracker'),
         automaticallyImplyLeading: false, // Remove back button
+        backgroundColor: const Color(0xFF2E8B57),
+        foregroundColor: Colors.white,
+        elevation: 0,
       ),
       body: _getSelectedPage(),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         currentIndex: _selectedIndex,
-        selectedItemColor: Colors.blue,
+        selectedItemColor: const Color(0xFF2E8B57),
         unselectedItemColor: Colors.grey,
         onTap: _onItemTapped,
         items: const [
@@ -1446,7 +2355,7 @@ class _DashboardScreenState extends State<DashboardScreen>
             label: 'Nutrify',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.bar_chart),
+            icon: Icon(Icons.analytics),
             label: 'Statistics',
           ),
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),

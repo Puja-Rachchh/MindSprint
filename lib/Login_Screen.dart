@@ -29,7 +29,13 @@ class LoginScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Login')),
+      backgroundColor: Colors.grey.shade50,
+      appBar: AppBar(
+        title: const Text('Login to MindSprint'),
+        backgroundColor: const Color(0xFF2E8B57),
+        foregroundColor: Colors.white,
+        elevation: 0,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(

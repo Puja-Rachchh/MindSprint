@@ -28,7 +28,13 @@ class SigninScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Sign In')),
+      backgroundColor: Colors.grey.shade50,
+      appBar: AppBar(
+        title: const Text('Sign Up - MindSprint'),
+        backgroundColor: const Color(0xFF2E8B57),
+        foregroundColor: Colors.white,
+        elevation: 0,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SingleChildScrollView(
@@ -39,7 +45,11 @@ class SigninScreen extends StatelessWidget {
                 controller: nameController,
                 decoration: const InputDecoration(
                   labelText: 'Name',
+                  prefixIcon: Icon(Icons.person, color: Color(0xFF2E8B57)),
                   border: OutlineInputBorder(),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF2E8B57), width: 2),
+                  ),
                 ),
               ),
               const SizedBox(height: 16),
@@ -47,7 +57,12 @@ class SigninScreen extends StatelessWidget {
                 controller: petNameController,
                 decoration: const InputDecoration(
                   labelText: 'Pet Name',
+                  prefixIcon: Icon(Icons.pets, color: Color(0xFF2E8B57)),
                   border: OutlineInputBorder(),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF2E8B57), width: 2),
+                  ),
+                ),
                 ),
               ),
               const SizedBox(height: 16),
