@@ -6,6 +6,12 @@ import 'dart:convert';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'package:google_mlkit_barcode_scanning/google_mlkit_barcode_scanning.dart' as mlkit;
+import 'screens/diet_plan_screen.dart';
+import 'screens/help_screen.dart';
+import 'screens/history_screen.dart';
+import 'screens/product_details_screen.dart';
+import 'screens/settings_screen.dart';
 import 'screens/diet_plan_screen.dart';
 import 'screens/help_screen.dart';
 import 'screens/history_screen.dart';
@@ -30,10 +36,12 @@ class _DashboardScreenState extends State<DashboardScreen>
   bool _isLoading = false;
   bool _isScannerActive = false;
   bool _isTorchOn = false;
+  String? _lastScannedBarcode;
 
-  // Image picker
+  // Image picker and scanner
   final ImagePicker _imagePicker = ImagePicker();
   File? _selectedImage;
+  final mlkit.BarcodeScanner _barcodeScanner = mlkit.BarcodeScanner();
 
   // Nutritionix API credentials
   final String nutritionixAppId = '2f699f85';
@@ -87,7 +95,7 @@ class _DashboardScreenState extends State<DashboardScreen>
     cameraController = MobileScannerController(
       detectionSpeed: DetectionSpeed.noDuplicates,
       facing: CameraFacing.back,
-      formats: [BarcodeFormat.ean13],
+      formats: [BarcodeFormat.ean13, BarcodeFormat.upcA, BarcodeFormat.upcE],
       returnImage: false,
       torchEnabled: _isTorchOn,
     );
@@ -166,7 +174,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(
                                         content: Text(
-                                          'Barcode detected! Fetching information...',
+                                          'Barcode  detected! Fetching information...',
                                         ),
                                         duration: Duration(seconds: 1),
                                       ),
@@ -263,15 +271,13 @@ class _DashboardScreenState extends State<DashboardScreen>
     try {
       debugPrint('Fetching info for barcode: $barcode');
       // Try with Nutritionix API
-      final response = await http.post(
-        Uri.parse('https://trackapi.nutritionix.com/v2/natural/nutrients'),
+      final response = await http.get(
+        Uri.parse('https://trackapi.nutritionix.com/v2/search/item?upc=$barcode'),
         headers: {
           'x-app-id': nutritionixAppId,
           'x-app-key': nutritionixApiKey,
           'Accept': 'application/json',
-          'Content-Type': 'application/json',
         },
-        body: json.encode({'query': 'KitKat chocolate bar', 'locale': 'en_US'}),
       );
 
       if (!mounted) return;
@@ -290,6 +296,11 @@ class _DashboardScreenState extends State<DashboardScreen>
               'brand': foodData['brand_name'] ?? 'Unknown Brand',
               'serving_size':
                   '${foodData['serving_qty']} ${foodData['serving_unit']}',
+              'photo': {
+                'thumb': foodData['photo']?['thumb'],
+                'highres': foodData['photo']?['highres'],
+                'is_user_uploaded': foodData['photo']?['is_user_uploaded'] ?? false,
+              },
               'nutriments': {
                 'energy-kcal_100g': foodData['nf_calories'],
                 'proteins_100g': foodData['nf_protein'],
@@ -424,7 +435,7 @@ class _DashboardScreenState extends State<DashboardScreen>
           ),
           child: Column(
             children: [
-              // Header
+              // Header with back button
               Padding(
                 padding: const EdgeInsets.all(20.0),
                 child: Row(
@@ -433,10 +444,20 @@ class _DashboardScreenState extends State<DashboardScreen>
                       onPressed: () => Navigator.of(context).pop(),
                       icon: const Icon(Icons.arrow_back, color: Colors.white),
                     ),
-                    const Spacer(),
+                    Expanded(
+                      child: Text(
+                        productName,
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
                     IconButton(
                       onPressed: () {},
-                      icon: const Icon(Icons.search, color: Colors.white),
+                      icon: const Icon(Icons.share, color: Colors.white),
                     ),
                   ],
                 ),
@@ -457,31 +478,64 @@ class _DashboardScreenState extends State<DashboardScreen>
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        // Product Image
+                        if (_productInfo!['photo']?['thumb'] != null) ...[
+                          Center(
+                            child: Container(
+                              width: 200,
+                              height: 200,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(15),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.grey.withOpacity(0.2),
+                                    spreadRadius: 2,
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 3),
+                                  ),
+                                ],
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(15),
+                                child: Image.network(
+                                  _productInfo!['photo']['highres'] ?? _productInfo!['photo']['thumb'],
+                                  fit: BoxFit.cover,
+                                  loadingBuilder: (context, child, loadingProgress) {
+                                    if (loadingProgress == null) return child;
+                                    return Center(
+                                      child: CircularProgressIndicator(
+                                        value: loadingProgress.expectedTotalBytes != null
+                                            ? loadingProgress.cumulativeBytesLoaded /
+                                                loadingProgress.expectedTotalBytes!
+                                            : null,
+                                        valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF2E8B57)),
+                                      ),
+                                    );
+                                  },
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return Container(
+                                      color: Colors.grey[100],
+                                      child: const Center(
+                                        child: Icon(
+                                          Icons.image_not_supported,
+                                          size: 40,
+                                          color: Colors.grey,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                        ],
                         // Food Image and Info
                         Center(
                           child: Column(
                             children: [
-                              Container(
-                                width: 200,
-                                height: 200,
-                                decoration: BoxDecoration(
-                                  color: Colors.black87,
-                                  borderRadius: BorderRadius.circular(100),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.grey.withOpacity(0.3),
-                                      spreadRadius: 0,
-                                      blurRadius: 20,
-                                      offset: const Offset(0, 10),
-                                    ),
-                                  ],
-                                ),
-                                child: const Icon(
-                                  Icons.restaurant_menu,
-                                  color: Colors.white,
-                                  size: 80,
-                                ),
-                              ),
+                             
                               const SizedBox(height: 25),
                               Text(
                                 productName,
