@@ -15,18 +15,21 @@ class DashboardScreen extends StatefulWidget {
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
 
-class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingObserver {
+class _DashboardScreenState extends State<DashboardScreen>
+    with WidgetsBindingObserver {
   // Bottom navigation state
   int _selectedIndex = 0;
-  
+
   // Scanner state with lifecycle management
   mobile_scanner.MobileScannerController? cameraController;
   Map<String, dynamic>? _productInfo;
   bool _isLoading = false;
   bool _isScannerActive = false;
   bool _isTorchOn = false;
+
   
   // Image picker and scanner
+
   final ImagePicker _imagePicker = ImagePicker();
   File? _selectedImage;
   final BarcodeScanner _barcodeScanner = BarcodeScanner();
@@ -51,7 +54,8 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.inactive || state == AppLifecycleState.paused) {
+    if (state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.paused) {
       _stopScanner();
     }
   }
@@ -169,7 +173,7 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
 
     if (status.isGranted) {
       _initializeCamera();
-      
+
       await showModalBottomSheet(
         context: context,
         isScrollControlled: true,
@@ -213,17 +217,21 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
                               onDetect: (capture) {
                                 final List<mobile_scanner.Barcode> barcodes = capture.barcodes;
                                 for (final barcode in barcodes) {
-                                  debugPrint('Detected barcode: ${barcode.rawValue}');
-                                  if (barcode.rawValue != null && 
+                                  debugPrint(
+                                    'Detected barcode: ${barcode.rawValue}',
+                                  );
+                                  if (barcode.rawValue != null &&
                                       barcode.rawValue!.length == 13) {
                                     if (!mounted) return;
                                     setState(() {
                                       _lastScannedBarcode = barcode.rawValue;
                                     });
                                     ScaffoldMessenger.of(context).showSnackBar(
+
                                       SnackBar(
                                         content: Text('Barcode detected: ${barcode.rawValue}'),
                                         duration: const Duration(seconds: 2),
+
                                       ),
                                     );
                                     Navigator.pop(context);
@@ -331,17 +339,14 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
           'Accept': 'application/json',
           'Content-Type': 'application/json',
         },
-        body: json.encode({
-          'query': 'KitKat chocolate bar',
-          'locale': 'en_US',
-        }),
+        body: json.encode({'query': 'KitKat chocolate bar', 'locale': 'en_US'}),
       );
 
       if (!mounted) return;
 
       debugPrint('API Response Status: ${response.statusCode}');
       debugPrint('API Response Body: ${response.body}');
-      
+
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         if (data['foods'] != null && data['foods'].isNotEmpty) {
@@ -351,7 +356,8 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
             _productInfo = {
               'product_name': foodData['food_name'] ?? 'Unknown Product',
               'brand': foodData['brand_name'] ?? 'Unknown Brand',
-              'serving_size': '${foodData['serving_qty']} ${foodData['serving_unit']}',
+              'serving_size':
+                  '${foodData['serving_qty']} ${foodData['serving_unit']}',
               'nutriments': {
                 'energy-kcal_100g': foodData['nf_calories'],
                 'proteins_100g': foodData['nf_protein'],
@@ -374,7 +380,9 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
       } else {
         debugPrint('API Error Response: ${response.body}');
         if (response.statusCode == 404) {
-          _showError('Product not found in database. Using generic information.');
+          _showError(
+            'Product not found in database. Using generic information.',
+          );
           // Use generic KitKat information as fallback
           setState(() {
             _productInfo = {
@@ -395,15 +403,18 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
                 'Contains Milk',
                 'Contains Wheat',
                 'May contain Nuts',
-                'Contains Soy'
+                'Contains Soy',
               ],
-              'ingredients': 'Sugar, wheat flour, cocoa butter, milk solids, cocoa mass, vegetable fat, emulsifier (soy lecithin), yeast, raising agent.',
+              'ingredients':
+                  'Sugar, wheat flour, cocoa butter, milk solids, cocoa mass, vegetable fat, emulsifier (soy lecithin), yeast, raising agent.',
             };
             _isLoading = false;
           });
           _showNutritionalInfo();
         } else {
-          _showError('Failed to fetch product information: ${response.statusCode}');
+          _showError(
+            'Failed to fetch product information: ${response.statusCode}',
+          );
         }
       }
     } catch (e) {
@@ -414,8 +425,9 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
 
   List<String> _extractAllergens(Map<String, dynamic> foodData) {
     List<String> allergens = [];
-    final ingredients = (foodData['nf_ingredient_statement'] ?? '').toLowerCase();
-    
+    final ingredients = (foodData['nf_ingredient_statement'] ?? '')
+        .toLowerCase();
+
     final allergensToCheck = {
       'milk': 'Contains Milk',
       'egg': 'Contains Eggs',
@@ -425,7 +437,7 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
       'peanut': 'Contains Peanuts',
       'wheat': 'Contains Wheat',
       'soy': 'Contains Soy',
-      'gluten': 'Contains Gluten'
+      'gluten': 'Contains Gluten',
     };
 
     allergensToCheck.forEach((key, value) {
@@ -483,9 +495,9 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
                 if (brand.isNotEmpty)
                   Text(
                     brand,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: Colors.grey[600],
-                    ),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.titleMedium?.copyWith(color: Colors.grey[600]),
                   ),
                 const SizedBox(height: 20),
                 if (servingSize.isNotEmpty)
@@ -508,12 +520,18 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
                 const SizedBox(height: 10),
                 _buildNutrientRow('Calories', nutriments['energy-kcal_100g']),
                 _buildNutrientRow('Protein', nutriments['proteins_100g']),
-                _buildNutrientRow('Total Carbohydrates', nutriments['carbohydrates_100g']),
+                _buildNutrientRow(
+                  'Total Carbohydrates',
+                  nutriments['carbohydrates_100g'],
+                ),
                 _buildNutrientRow('Total Fat', nutriments['fat_100g']),
                 _buildNutrientRow('Dietary Fiber', nutriments['fiber_100g']),
                 _buildNutrientRow('Sugars', nutriments['sugars_100g']),
                 _buildNutrientRow('Sodium', nutriments['sodium_100g']),
-                _buildNutrientRow('Cholesterol', nutriments['cholesterol_100g']),
+                _buildNutrientRow(
+                  'Cholesterol',
+                  nutriments['cholesterol_100g'],
+                ),
                 if (ingredients.isNotEmpty) ...[
                   const SizedBox(height: 20),
                   const Text(
@@ -521,10 +539,7 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 10),
-                  Text(
-                    ingredients,
-                    style: const TextStyle(fontSize: 14),
-                  ),
+                  Text(ingredients, style: const TextStyle(fontSize: 14)),
                 ],
                 if (allergens.isNotEmpty) ...[
                   const SizedBox(height: 20),
@@ -547,13 +562,15 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: allergens
-                          .map((allergen) => Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 2),
-                                child: Text(
-                                  '• $allergen',
-                                  style: const TextStyle(color: Colors.red),
-                                ),
-                              ))
+                          .map(
+                            (allergen) => Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 2),
+                              child: Text(
+                                '• $allergen',
+                                style: const TextStyle(color: Colors.red),
+                              ),
+                            ),
+                          )
                           .toList(),
                     ),
                   ),
@@ -586,16 +603,13 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
       }
       displayValue = '${value.toStringAsFixed(1)}$unit';
     }
-    
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: const TextStyle(fontSize: 16),
-          ),
+          Text(label, style: const TextStyle(fontSize: 16)),
           Text(
             displayValue,
             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
@@ -907,7 +921,7 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
     final TextEditingController diseaseController = TextEditingController();
     final TextEditingController descriptionController = TextEditingController();
 
-    String selectedGender = SigninScreen.userData['user_gender'] ?? 'Male';
+    String? selectedGender = SigninScreen.userData['gender'];
 
     // Populate controllers with existing data
     nameController.text = SigninScreen.userData['user_name'] ?? '';
@@ -955,6 +969,17 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
                         labelText: 'Name',
                         border: OutlineInputBorder(),
                       ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: TextEditingController(
+                        text: selectedGender ?? "Not set",
+                      ),
+                      decoration: const InputDecoration(
+                        labelText: 'Gender',
+                        border: OutlineInputBorder(),
+                      ),
+                      enabled: false,
                     ),
                     const SizedBox(height: 12),
                     TextField(
@@ -1021,29 +1046,9 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
                       keyboardType: TextInputType.number,
                     ),
                     const SizedBox(height: 12),
-                    StatefulBuilder(
-                      builder: (context, setStateLocal) {
-                        return DropdownButtonFormField<String>(
-                          decoration: const InputDecoration(
-                            labelText: 'Gender',
-                            border: OutlineInputBorder(),
-                          ),
-                          value: selectedGender,
-                          items: ['Male', 'Female', 'Other'].map((
-                            String value,
-                          ) {
-                            return DropdownMenuItem<String>(
-                              value: value,
-                              child: Text(value),
-                            );
-                          }).toList(),
-                          onChanged: (String? newValue) {
-                            setStateLocal(() {
-                              selectedGender = newValue!;
-                            });
-                          },
-                        );
-                      },
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      // Removed duplicate gender display from Health Information section
                     ),
                     const SizedBox(height: 12),
                     TextField(
@@ -1086,7 +1091,7 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
                 SigninScreen.userData['user_age'] = ageController.text;
                 SigninScreen.userData['user_height'] = heightController.text;
                 SigninScreen.userData['user_weight'] = weightController.text;
-                SigninScreen.userData['user_gender'] = selectedGender;
+                SigninScreen.userData['user_gender'] = selectedGender ?? '';
                 SigninScreen.userData['user_allergic'] =
                     allergicController.text;
                 SigninScreen.userData['user_disease'] = diseaseController.text;
@@ -1150,35 +1155,31 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
 class ScannerOverlayPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    final windowWidth = 280.0;  // Wider scanning window for better barcode capture
-    final windowHeight = 120.0;  // Reduced height to match barcode proportions
+    final windowWidth =
+        280.0; // Wider scanning window for better barcode capture
+    final windowHeight = 120.0; // Reduced height to match barcode proportions
     final center = Offset(size.width / 2, size.height / 2);
 
     final backgroundPath = Path()
       ..addRect(Rect.fromLTWH(0, 0, size.width, size.height));
     final windowPath = Path()
-      ..addRect(Rect.fromCenter(
-        center: center,
-        width: windowWidth,
-        height: windowHeight,
-      ));
+      ..addRect(
+        Rect.fromCenter(
+          center: center,
+          width: windowWidth,
+          height: windowHeight,
+        ),
+      );
     final overlayPath = Path.combine(
       PathOperation.difference,
       backgroundPath,
       windowPath,
     );
 
-    canvas.drawPath(
-      overlayPath,
-      Paint()..color = Colors.black54,
-    );
+    canvas.drawPath(overlayPath, Paint()..color = Colors.black54);
 
     canvas.drawRect(
-      Rect.fromCenter(
-        center: center,
-        width: windowWidth,
-        height: windowHeight,
-      ),
+      Rect.fromCenter(center: center, width: windowWidth, height: windowHeight),
       Paint()
         ..color = Colors.white
         ..style = PaintingStyle.stroke
@@ -1203,17 +1204,50 @@ class ScannerOverlayPainter extends CustomPainter {
     }
 
     // Draw corners
-    drawCorner(Offset(center.dx - windowWidth / 2, center.dy - windowHeight / 2), true);
-    drawCorner(Offset(center.dx - windowWidth / 2, center.dy - windowHeight / 2), false);
-    
-    drawCorner(Offset(center.dx + windowWidth / 2, center.dy - windowHeight / 2), true);
-    drawCorner(Offset(center.dx + windowWidth / 2 - markerLength, center.dy - windowHeight / 2), true);
-    
-    drawCorner(Offset(center.dx - windowWidth / 2, center.dy + windowHeight / 2), true);
-    drawCorner(Offset(center.dx - windowWidth / 2, center.dy + windowHeight / 2 - markerLength), false);
-    
-    drawCorner(Offset(center.dx + windowWidth / 2, center.dy + windowHeight / 2), false);
-    drawCorner(Offset(center.dx + windowWidth / 2 - markerLength, center.dy + windowHeight / 2), true);
+    drawCorner(
+      Offset(center.dx - windowWidth / 2, center.dy - windowHeight / 2),
+      true,
+    );
+    drawCorner(
+      Offset(center.dx - windowWidth / 2, center.dy - windowHeight / 2),
+      false,
+    );
+
+    drawCorner(
+      Offset(center.dx + windowWidth / 2, center.dy - windowHeight / 2),
+      true,
+    );
+    drawCorner(
+      Offset(
+        center.dx + windowWidth / 2 - markerLength,
+        center.dy - windowHeight / 2,
+      ),
+      true,
+    );
+
+    drawCorner(
+      Offset(center.dx - windowWidth / 2, center.dy + windowHeight / 2),
+      true,
+    );
+    drawCorner(
+      Offset(
+        center.dx - windowWidth / 2,
+        center.dy + windowHeight / 2 - markerLength,
+      ),
+      false,
+    );
+
+    drawCorner(
+      Offset(center.dx + windowWidth / 2, center.dy + windowHeight / 2),
+      false,
+    );
+    drawCorner(
+      Offset(
+        center.dx + windowWidth / 2 - markerLength,
+        center.dy + windowHeight / 2,
+      ),
+      true,
+    );
   }
 
   @override

@@ -2,7 +2,17 @@ import 'package:flutter/material.dart';
 import 'Login_Screen.dart';
 import 'Detail_Screen.dart';
 
-class SigninScreen extends StatelessWidget {
+class SigninScreen extends StatefulWidget {
+  const SigninScreen({Key? key}) : super(key: key);
+
+  // Static map to store user data temporarily (in-memory storage)
+  static Map<String, String> userData = {};
+
+  @override
+  State<SigninScreen> createState() => _SigninScreenState();
+}
+
+class _SigninScreenState extends State<SigninScreen> {
   final TextEditingController nameController = TextEditingController();
   final TextEditingController petNameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
@@ -10,19 +20,18 @@ class SigninScreen extends StatelessWidget {
   final TextEditingController confirmPasswordController =
       TextEditingController();
   final TextEditingController ageController = TextEditingController();
-
-  SigninScreen({Key? key}) : super(key: key);
-
-  // Static map to store user data temporarily (in-memory storage)
-  static Map<String, String> userData = {};
+  String? _selectedGender = null;
+  final List<String> _genderOptions = ['Male', 'Female', 'Other'];
 
   Future<void> _saveUserData() async {
     // Store data in memory instead of SharedPreferences
-    userData['user_name'] = nameController.text;
-    userData['user_pet_name'] = petNameController.text;
-    userData['user_email'] = emailController.text;
-    userData['user_password'] = passwordController.text;
-    userData['user_age'] = ageController.text;
+    SigninScreen.userData['user_name'] = nameController.text;
+    SigninScreen.userData['user_pet_name'] = petNameController.text;
+    SigninScreen.userData['user_email'] = emailController.text;
+    SigninScreen.userData['user_password'] = passwordController.text;
+    SigninScreen.userData['user_age'] = ageController.text;
+    SigninScreen.userData['user_gender'] = _selectedGender ?? '';
+    SigninScreen.userData['gender'] = _selectedGender ?? '';
   }
 
   @override
@@ -85,6 +94,27 @@ class SigninScreen extends StatelessWidget {
                   border: OutlineInputBorder(),
                 ),
                 keyboardType: TextInputType.number,
+              ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<String>(
+                decoration: const InputDecoration(
+                  labelText: 'Gender',
+                  border: OutlineInputBorder(),
+                ),
+                value: _selectedGender,
+                items: [
+                  const DropdownMenuItem(value: 'Male', child: Text('Male')),
+                  const DropdownMenuItem(
+                    value: 'Female',
+                    child: Text('Female'),
+                  ),
+                  const DropdownMenuItem(value: 'Other', child: Text('Other')),
+                ],
+                onChanged: (value) {
+                  setState(() {
+                    _selectedGender = value;
+                  });
+                },
               ),
               const SizedBox(height: 24),
               ElevatedButton(
