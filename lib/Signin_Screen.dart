@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'Dashboard_Screen.dart';
@@ -58,6 +59,7 @@ class _SigninScreenState extends State<SigninScreen> {
     } finally {
       setState(() => isLoading = false);
     }
+
   }
 
   @override
@@ -85,6 +87,7 @@ class _SigninScreenState extends State<SigninScreen> {
                     ? "Password must be at least 6 chars"
                     : null,
               ),
+
               const SizedBox(height: 20),
               isLoading
                   ? const CircularProgressIndicator()
