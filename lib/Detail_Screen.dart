@@ -15,8 +15,6 @@ class _DetailScreenState extends State<DetailScreen> {
   final TextEditingController allergicController = TextEditingController();
   final TextEditingController diseaseController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
-  String? _selectedGender;
-  final List<String> _genderOptions = ['Male', 'Female', 'Other'];
 
   Future<void> _saveDetailData() async {
     // Add additional details to the existing user data
@@ -25,7 +23,6 @@ class _DetailScreenState extends State<DetailScreen> {
     SigninScreen.userData['user_allergic'] = allergicController.text;
     SigninScreen.userData['user_disease'] = diseaseController.text;
     SigninScreen.userData['user_description'] = descriptionController.text;
-    SigninScreen.userData['user_gender'] = _selectedGender ?? '';
   }
 
   @override
@@ -71,7 +68,7 @@ class _DetailScreenState extends State<DetailScreen> {
               TextField(
                 controller: heightController,
                 decoration: const InputDecoration(
-                  labelText: 'Height (cm)',
+                  labelText: 'Height (cm) *',
                   border: OutlineInputBorder(),
                 ),
                 keyboardType: TextInputType.number,
@@ -80,16 +77,17 @@ class _DetailScreenState extends State<DetailScreen> {
               TextField(
                 controller: weightController,
                 decoration: const InputDecoration(
-                  labelText: 'Weight (kg)',
+                  labelText: 'Weight (kg) *',
                   border: OutlineInputBorder(),
                 ),
                 keyboardType: TextInputType.number,
               ),
               const SizedBox(height: 16),
+
               TextField(
                 controller: allergicController,
                 decoration: const InputDecoration(
-                  labelText: 'Allergic to',
+                  labelText: 'Allergic to (If any)',
                   border: OutlineInputBorder(),
                 ),
               ),
@@ -97,7 +95,7 @@ class _DetailScreenState extends State<DetailScreen> {
               TextField(
                 controller: diseaseController,
                 decoration: const InputDecoration(
-                  labelText: 'Any disease',
+                  labelText: 'Any disease (If any)',
                   border: OutlineInputBorder(),
                 ),
               ),
@@ -114,15 +112,28 @@ class _DetailScreenState extends State<DetailScreen> {
               ElevatedButton(
                 onPressed: () {
                   // Validate required fields
-                  if (heightController.text.isEmpty ||
-                      weightController.text.isEmpty ||
-                      allergicController.text.isEmpty ||
-                      diseaseController.text.isEmpty) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Please fill all required fields'),
-                      ),
-                    );
+                  String height = heightController.text.trim();
+                  String weight = weightController.text.trim();
+                  String errorMsg = '';
+                  if (height.isEmpty || weight.isEmpty) {
+                    errorMsg = 'Please fill all required fields marked with *';
+                  } else {
+                    double? heightVal = double.tryParse(height);
+                    double? weightVal = double.tryParse(weight);
+                    if (heightVal == null) {
+                      errorMsg = 'Height must be a valid number';
+                    } else if (heightVal < 50 || heightVal > 300) {
+                      errorMsg = 'Height must be between 50 cm and 300 cm';
+                    } else if (weightVal == null) {
+                      errorMsg = 'Weight must be a valid number';
+                    } else if (weightVal < 2 || weightVal > 500) {
+                      errorMsg = 'Weight must be between 2 kg and 500 kg';
+                    }
+                  }
+                  if (errorMsg.isNotEmpty) {
+                    ScaffoldMessenger.of(
+                      context,
+                    ).showSnackBar(SnackBar(content: Text(errorMsg)));
                     return;
                   }
 

@@ -125,9 +125,37 @@ class _SigninScreenState extends State<SigninScreen> {
                       emailController.text.isEmpty ||
                       passwordController.text.isEmpty ||
                       confirmPasswordController.text.isEmpty ||
-                      ageController.text.isEmpty) {
+                      ageController.text.isEmpty ||
+                      _selectedGender == null) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Please fill all fields')),
+                      const SnackBar(
+                        content: Text(
+                          'Please fill all fields and select gender',
+                        ),
+                      ),
+                    );
+                    return;
+                  }
+
+                  // Email validation
+                  if (!emailController.text.contains('@') ||
+                      !RegExp(
+                        r'^[^@\s]+@[^@\s]+\.[^@\s]+',
+                      ).hasMatch(emailController.text)) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Please enter a valid email address'),
+                      ),
+                    );
+                    return;
+                  }
+
+                  // Password length validation
+                  if (passwordController.text.length < 6) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Password must be at least 6 characters'),
+                      ),
                     );
                     return;
                   }
@@ -137,6 +165,18 @@ class _SigninScreenState extends State<SigninScreen> {
                       confirmPasswordController.text) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Passwords do not match')),
+                    );
+                    return;
+                  }
+
+                  // Age validation (numeric and reasonable range)
+                  if (int.tryParse(ageController.text) == null ||
+                      int.parse(ageController.text) < 1 ||
+                      int.parse(ageController.text) > 120) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Please enter a valid age (1-120)'),
+                      ),
                     );
                     return;
                   }

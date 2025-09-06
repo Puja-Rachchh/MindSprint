@@ -401,11 +401,13 @@ class _DashboardScreenState extends State<DashboardScreen>
     final allergens = _productInfo!['allergens_tags'] ?? [];
     final productName = _productInfo!['product_name'] ?? 'Unknown Product';
     final brand = _productInfo!['brand'] ?? '';
-    final servingSize = _productInfo!['serving_size'] ?? '';
     final ingredients = _productInfo!['ingredients'] ?? '';
+    final servingSize = _productInfo!['serving_size'] ?? '';
 
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
       builder: (BuildContext context) {
         return Container(
           padding: const EdgeInsets.all(20.0),
@@ -538,8 +540,12 @@ class _DashboardScreenState extends State<DashboardScreen>
         children: [
           Text(label, style: const TextStyle(fontSize: 16)),
           Text(
-            displayValue,
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey[600],
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ],
       ),
@@ -548,202 +554,333 @@ class _DashboardScreenState extends State<DashboardScreen>
 
   Widget _buildEnhancedHomePage() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20.0),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Welcome Header
-          const Text(
-            'Welcome to MindSprint! 👋',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF2D3748),
-            ),
-          ),
-          const SizedBox(height: 10),
-          const Text(
-            'Ready to scan and eat healthy?',
-            style: TextStyle(fontSize: 16, color: Color(0xFF718096)),
-          ),
-          const SizedBox(height: 30),
-
-          // Main Scan Button
+          // Header Section
           Container(
-            width: double.infinity,
-            height: 140,
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Color(0xFF6A5ACD),
-                  Color(0xFF9370DB),
-                  Color(0xFFBA55D3),
-                ],
-              ),
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF6A5ACD).withOpacity(0.3),
-                  spreadRadius: 0,
-                  blurRadius: 20,
-                  offset: const Offset(0, 10),
-                ),
-              ],
-            ),
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                borderRadius: BorderRadius.circular(20),
-                onTap: _startScanner,
-                child: const Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.qr_code_scanner, size: 50, color: Colors.white),
-                    SizedBox(height: 10),
-                    Text(
-                      'Scan Barcode',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                    Text(
-                      'Point your camera at the product barcode',
-                      style: TextStyle(fontSize: 12, color: Colors.white70),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
-
-          // Upload Image Button
-          Container(
-            width: double.infinity,
-            height: 60,
-            decoration: BoxDecoration(
+            padding: const EdgeInsets.fromLTRB(20, 50, 20, 30),
+            decoration: const BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(15),
-              border: Border.all(color: const Color(0xFF6A5ACD), width: 2),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.1),
-                  spreadRadius: 0,
-                  blurRadius: 10,
-                  offset: const Offset(0, 2),
-                ),
-              ],
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(25),
+                bottomRight: Radius.circular(25),
+              ),
             ),
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                borderRadius: BorderRadius.circular(15),
-                onTap: _selectImageFromGallery,
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Icon(Icons.upload_file, color: Color(0xFF6A5ACD), size: 24),
-                    SizedBox(width: 10),
-                    Text(
-                      'Upload Image',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF6A5ACD),
+                    const Icon(Icons.menu, size: 24, color: Colors.black54),
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[100],
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(
+                        Icons.search,
+                        size: 20,
+                        color: Colors.black54,
                       ),
                     ),
                   ],
                 ),
-              ),
+                const SizedBox(height: 25),
+                const Text(
+                  "Let's Check Food",
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF2E8B57),
+                  ),
+                ),
+                const Text(
+                  "Nutrition & Calories",
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w500,
+                    color: Color(0xFF2E8B57),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  "Select food type to see calories",
+                  style: TextStyle(fontSize: 14, color: Colors.black54),
+                ),
+                const SizedBox(height: 25),
+
+                // Food Category Icons
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _buildCategoryIcon(Icons.local_dining, "Fast Food", false),
+                    _buildCategoryIcon(Icons.restaurant, "Vegetables", true),
+                    _buildCategoryIcon(Icons.local_bar, "Drinks", false),
+                    _buildCategoryIcon(
+                      Icons.shopping_basket,
+                      "Groceries",
+                      false,
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
 
-          // Selected Image Display
-          if (_selectedImage != null) ...[
-            const SizedBox(height: 20),
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(15),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.1),
-                    spreadRadius: 0,
-                    blurRadius: 10,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Selected Image:',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF2D3748),
+          // Food Cards Section
+          Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildFoodCard(
+                        "Vegetables &\nBeans",
+                        "43 Calories",
+                        Colors.green[100]!,
+                        Icons.eco,
+                        Colors.green,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 10),
-                  Container(
-                    height: 200,
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey.shade300),
-                      borderRadius: BorderRadius.circular(10),
+                    const SizedBox(width: 15),
+                    Expanded(
+                      child: _buildFoodCard(
+                        "Vegetables &\nMeat",
+                        "43 Calories",
+                        Colors.orange[100]!,
+                        Icons.restaurant_menu,
+                        Colors.orange,
+                      ),
                     ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: Image.file(_selectedImage!, fit: BoxFit.cover),
-                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+
+                // Balanced Diet Card
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.1),
+                        spreadRadius: 0,
+                        blurRadius: 20,
+                        offset: const Offset(0, 5),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 15),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  child: Row(
                     children: [
                       Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: _selectImageFromGallery,
-                          icon: const Icon(Icons.refresh, size: 18),
-                          label: const Text('Change'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF6A5ACD),
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              "Balanced Diet",
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87,
+                              ),
                             ),
-                          ),
+                            const SizedBox(height: 8),
+                            const Text(
+                              "Stay healthy and young by\ntaking a balanced diet!",
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.black54,
+                                height: 1.4,
+                              ),
+                            ),
+                            const SizedBox(height: 15),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 10,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF2E8B57),
+                                borderRadius: BorderRadius.circular(25),
+                              ),
+                              child: const Text(
+                                "Learn More",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () {
-                            setState(() {
-                              _selectedImage = null;
-                            });
-                          },
-                          icon: const Icon(Icons.delete, size: 18),
-                          label: const Text('Remove'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFE53E3E),
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
+                      const SizedBox(width: 15),
+                      Container(
+                        width: 80,
+                        height: 80,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(15),
+                          image: const DecorationImage(
+                            image: NetworkImage(
+                              'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=150&h=150&fit=crop',
                             ),
+                            fit: BoxFit.cover,
                           ),
                         ),
                       ),
                     ],
                   ),
-                ],
+                ),
+
+                const SizedBox(height: 30),
+
+                // Scan Button
+                Container(
+                  width: double.infinity,
+                  height: 60,
+                  child: ElevatedButton.icon(
+                    onPressed: _startScanner,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF2E8B57),
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                    ),
+                    icon: const Icon(Icons.qr_code_scanner, size: 24),
+                    label: const Text(
+                      "Scan Food Barcode",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+
+                // Upload Image Button
+                const SizedBox(height: 15),
+                Container(
+                  width: double.infinity,
+                  height: 60,
+                  child: ElevatedButton.icon(
+                    onPressed: _selectImageFromGallery,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: const Color(0xFF2E8B57),
+                      elevation: 0,
+                      side: const BorderSide(
+                        color: Color(0xFF2E8B57),
+                        width: 2,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                    ),
+                    icon: const Icon(Icons.upload_file, size: 24),
+                    label: const Text(
+                      "Upload Food Image",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Selected Image Display
+          if (_selectedImage != null) ...[
+            Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.1),
+                      spreadRadius: 0,
+                      blurRadius: 15,
+                      offset: const Offset(0, 5),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Selected Image:',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 15),
+                    Container(
+                      height: 200,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(15),
+                        image: DecorationImage(
+                          image: FileImage(_selectedImage!),
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 15),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: _selectImageFromGallery,
+                            icon: const Icon(Icons.refresh, size: 18),
+                            label: const Text('Change'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF2E8B57),
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(15),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              setState(() {
+                                _selectedImage = null;
+                              });
+                            },
+                            icon: const Icon(Icons.delete, size: 18),
+                            label: const Text('Remove'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red[400],
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(15),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
@@ -756,14 +893,14 @@ class _DashboardScreenState extends State<DashboardScreen>
                 children: [
                   CircularProgressIndicator(
                     valueColor: AlwaysStoppedAnimation<Color>(
-                      Color(0xFF6A5ACD),
+                      Color(0xFF2E8B57),
                     ),
                   ),
                   SizedBox(height: 10),
                   Text(
                     'Processing...',
                     style: TextStyle(
-                      color: Color(0xFF6A5ACD),
+                      color: Color(0xFF2E8B57),
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -771,6 +908,104 @@ class _DashboardScreenState extends State<DashboardScreen>
               ),
             ),
           ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCategoryIcon(IconData icon, String label, bool isSelected) {
+    return Column(
+      children: [
+        Container(
+          width: 60,
+          height: 60,
+          decoration: BoxDecoration(
+            color: isSelected ? const Color(0xFF2E8B57) : Colors.grey[100],
+            borderRadius: BorderRadius.circular(15),
+          ),
+          child: Icon(
+            icon,
+            color: isSelected ? Colors.white : Colors.grey[600],
+            size: 28,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 11,
+            color: isSelected ? const Color(0xFF2E8B57) : Colors.grey[600],
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFoodCard(
+    String title,
+    String calories,
+    Color backgroundColor,
+    IconData icon,
+    Color iconColor,
+  ) {
+    return Container(
+      height: 160,
+      padding: const EdgeInsets.all(15),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 0,
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 50,
+            height: 50,
+            decoration: BoxDecoration(
+              color: backgroundColor,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: iconColor, size: 24),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                  height: 1.2,
+                ),
+              ),
+              const SizedBox(height: 5),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    calories,
+                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                  ),
+                  Icon(
+                    Icons.arrow_forward_ios,
+                    size: 12,
+                    color: Colors.grey[400],
+                  ),
+                ],
+              ),
+            ],
+          ),
         ],
       ),
     );
@@ -985,6 +1220,73 @@ class _DashboardScreenState extends State<DashboardScreen>
             // Update Button
             ElevatedButton(
               onPressed: () {
+                // Validate all fields
+                if (nameController.text.isEmpty ||
+                    petNameController.text.isEmpty ||
+                    emailController.text.isEmpty ||
+                    ageController.text.isEmpty ||
+                    heightController.text.isEmpty ||
+                    weightController.text.isEmpty ||
+                    selectedGender == null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Please fill all fields and select gender'),
+                    ),
+                  );
+                  return;
+                }
+
+                // Email validation
+                if (!emailController.text.contains('@') ||
+                    !RegExp(
+                      r'^[^@\s]+@[^@\s]+\.[^@\s]+',
+                    ).hasMatch(emailController.text)) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Please enter a valid email address'),
+                    ),
+                  );
+                  return;
+                }
+
+                // Age validation
+                if (int.tryParse(ageController.text) == null ||
+                    int.parse(ageController.text) < 1 ||
+                    int.parse(ageController.text) > 120) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Please enter a valid age (1-120)'),
+                    ),
+                  );
+                  return;
+                }
+
+                // Height validation
+                if (double.tryParse(heightController.text) == null ||
+                    double.parse(heightController.text) <= 0) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        'Please enter a valid height (numeric, > 0)',
+                      ),
+                    ),
+                  );
+                  return;
+                }
+
+                // Weight validation
+                if (double.tryParse(weightController.text) == null ||
+                    double.parse(weightController.text) <= 0) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        'Please enter a valid weight (numeric, > 0)',
+                      ),
+                    ),
+                  );
+                  return;
+                }
+
                 // Update the stored data
                 SigninScreen.userData['user_name'] = nameController.text;
                 SigninScreen.userData['user_pet_name'] = petNameController.text;
