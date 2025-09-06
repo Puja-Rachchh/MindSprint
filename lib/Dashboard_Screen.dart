@@ -848,6 +848,8 @@ class _DashboardScreenState extends State<DashboardScreen>
                       ),
                     ),
                     const SizedBox(height: 16),
+
+                    // Name
                     TextField(
                       controller: nameController,
                       decoration: const InputDecoration(
@@ -856,17 +858,31 @@ class _DashboardScreenState extends State<DashboardScreen>
                       ),
                     ),
                     const SizedBox(height: 12),
-                    TextField(
-                      controller: TextEditingController(
-                        text: selectedGender ?? "Not set",
-                      ),
+
+                    // ✅ Gender Dropdown (instead of TextField)
+                    DropdownButtonFormField<String>(
+                      value: selectedGender,
+                      items: ["Male", "Female", "Other"]
+                          .map(
+                            (gender) => DropdownMenuItem(
+                              value: gender,
+                              child: Text(gender),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          selectedGender = value;
+                        });
+                      },
                       decoration: const InputDecoration(
                         labelText: 'Gender',
                         border: OutlineInputBorder(),
                       ),
-                      enabled: false,
                     ),
                     const SizedBox(height: 12),
+
+                    // Pet Name
                     TextField(
                       controller: petNameController,
                       decoration: const InputDecoration(
@@ -875,6 +891,8 @@ class _DashboardScreenState extends State<DashboardScreen>
                       ),
                     ),
                     const SizedBox(height: 12),
+
+                    // Email
                     TextField(
                       controller: emailController,
                       decoration: const InputDecoration(
@@ -884,6 +902,8 @@ class _DashboardScreenState extends State<DashboardScreen>
                       keyboardType: TextInputType.emailAddress,
                     ),
                     const SizedBox(height: 12),
+
+                    // Age
                     TextField(
                       controller: ageController,
                       decoration: const InputDecoration(
@@ -931,11 +951,6 @@ class _DashboardScreenState extends State<DashboardScreen>
                       keyboardType: TextInputType.number,
                     ),
                     const SizedBox(height: 12),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0),
-                      // Removed duplicate gender display from Health Information section
-                    ),
-                    const SizedBox(height: 12),
                     TextField(
                       controller: allergicController,
                       decoration: const InputDecoration(
@@ -964,6 +979,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                 ),
               ),
             ),
+
             const SizedBox(height: 24),
 
             // Update Button
