@@ -14,17 +14,18 @@ class DashboardScreen extends StatefulWidget {
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
 
-class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingObserver {
+class _DashboardScreenState extends State<DashboardScreen>
+    with WidgetsBindingObserver {
   // Bottom navigation state
   int _selectedIndex = 0;
-  
+
   // Scanner state with lifecycle management
   MobileScannerController? cameraController;
   Map<String, dynamic>? _productInfo;
   bool _isLoading = false;
   bool _isScannerActive = false;
   bool _isTorchOn = false;
-  
+
   // Image picker
   final ImagePicker _imagePicker = ImagePicker();
   File? _selectedImage;
@@ -48,7 +49,8 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.inactive || state == AppLifecycleState.paused) {
+    if (state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.paused) {
       _stopScanner();
     }
   }
@@ -106,7 +108,7 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
 
     if (status.isGranted) {
       _initializeCamera();
-      
+
       await showModalBottomSheet(
         context: context,
         isScrollControlled: true,
@@ -150,13 +152,17 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
                               onDetect: (capture) {
                                 final List<Barcode> barcodes = capture.barcodes;
                                 for (final barcode in barcodes) {
-                                  debugPrint('Detected barcode: ${barcode.rawValue}');
-                                  if (barcode.rawValue != null && 
+                                  debugPrint(
+                                    'Detected barcode: ${barcode.rawValue}',
+                                  );
+                                  if (barcode.rawValue != null &&
                                       barcode.rawValue!.length == 13) {
                                     if (!mounted) return;
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(
-                                        content: Text('Barcode detected! Fetching information...'),
+                                        content: Text(
+                                          'Barcode detected! Fetching information...',
+                                        ),
                                         duration: Duration(seconds: 1),
                                       ),
                                     );
@@ -260,17 +266,14 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
           'Accept': 'application/json',
           'Content-Type': 'application/json',
         },
-        body: json.encode({
-          'query': 'KitKat chocolate bar',
-          'locale': 'en_US',
-        }),
+        body: json.encode({'query': 'KitKat chocolate bar', 'locale': 'en_US'}),
       );
 
       if (!mounted) return;
 
       debugPrint('API Response Status: ${response.statusCode}');
       debugPrint('API Response Body: ${response.body}');
-      
+
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         if (data['foods'] != null && data['foods'].isNotEmpty) {
@@ -280,7 +283,8 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
             _productInfo = {
               'product_name': foodData['food_name'] ?? 'Unknown Product',
               'brand': foodData['brand_name'] ?? 'Unknown Brand',
-              'serving_size': '${foodData['serving_qty']} ${foodData['serving_unit']}',
+              'serving_size':
+                  '${foodData['serving_qty']} ${foodData['serving_unit']}',
               'nutriments': {
                 'energy-kcal_100g': foodData['nf_calories'],
                 'proteins_100g': foodData['nf_protein'],
@@ -303,7 +307,9 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
       } else {
         debugPrint('API Error Response: ${response.body}');
         if (response.statusCode == 404) {
-          _showError('Product not found in database. Using generic information.');
+          _showError(
+            'Product not found in database. Using generic information.',
+          );
           // Use generic KitKat information as fallback
           setState(() {
             _productInfo = {
@@ -324,15 +330,18 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
                 'Contains Milk',
                 'Contains Wheat',
                 'May contain Nuts',
-                'Contains Soy'
+                'Contains Soy',
               ],
-              'ingredients': 'Sugar, wheat flour, cocoa butter, milk solids, cocoa mass, vegetable fat, emulsifier (soy lecithin), yeast, raising agent.',
+              'ingredients':
+                  'Sugar, wheat flour, cocoa butter, milk solids, cocoa mass, vegetable fat, emulsifier (soy lecithin), yeast, raising agent.',
             };
             _isLoading = false;
           });
           _showNutritionalInfo();
         } else {
-          _showError('Failed to fetch product information: ${response.statusCode}');
+          _showError(
+            'Failed to fetch product information: ${response.statusCode}',
+          );
         }
       }
     } catch (e) {
@@ -343,8 +352,9 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
 
   List<String> _extractAllergens(Map<String, dynamic> foodData) {
     List<String> allergens = [];
-    final ingredients = (foodData['nf_ingredient_statement'] ?? '').toLowerCase();
-    
+    final ingredients = (foodData['nf_ingredient_statement'] ?? '')
+        .toLowerCase();
+
     final allergensToCheck = {
       'milk': 'Contains Milk',
       'egg': 'Contains Eggs',
@@ -354,7 +364,7 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
       'peanut': 'Contains Peanuts',
       'wheat': 'Contains Wheat',
       'soy': 'Contains Soy',
-      'gluten': 'Contains Gluten'
+      'gluten': 'Contains Gluten',
     };
 
     allergensToCheck.forEach((key, value) {
@@ -391,143 +401,326 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
     final allergens = _productInfo!['allergens_tags'] ?? [];
     final productName = _productInfo!['product_name'] ?? 'Unknown Product';
     final brand = _productInfo!['brand'] ?? '';
-    final servingSize = _productInfo!['serving_size'] ?? '';
     final ingredients = _productInfo!['ingredients'] ?? '';
 
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
       builder: (BuildContext context) {
         return Container(
-          padding: const EdgeInsets.all(20.0),
-          height: MediaQuery.of(context).size.height * 0.8,
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  productName,
-                  style: Theme.of(context).textTheme.headlineSmall,
+          height: MediaQuery.of(context).size.height * 0.9,
+          decoration: const BoxDecoration(
+            color: Color(0xFF2E8B57),
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(25),
+              topRight: Radius.circular(25),
+            ),
+          ),
+          child: Column(
+            children: [
+              // Header
+              Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Row(
+                  children: [
+                    IconButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      icon: const Icon(Icons.arrow_back, color: Colors.white),
+                    ),
+                    const Spacer(),
+                    IconButton(
+                      onPressed: () {},
+                      icon: const Icon(Icons.search, color: Colors.white),
+                    ),
+                  ],
                 ),
-                if (brand.isNotEmpty)
-                  Text(
-                    brand,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: Colors.grey[600],
+              ),
+
+              // Content Container
+              Expanded(
+                child: Container(
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(25),
+                      topRight: Radius.circular(25),
                     ),
                   ),
-                const SizedBox(height: 20),
-                if (servingSize.isNotEmpty)
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[200],
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      'Serving Size: $servingSize',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                const SizedBox(height: 20),
-                const Text(
-                  'Nutritional Information',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 10),
-                _buildNutrientRow('Calories', nutriments['energy-kcal_100g']),
-                _buildNutrientRow('Protein', nutriments['proteins_100g']),
-                _buildNutrientRow('Total Carbohydrates', nutriments['carbohydrates_100g']),
-                _buildNutrientRow('Total Fat', nutriments['fat_100g']),
-                _buildNutrientRow('Dietary Fiber', nutriments['fiber_100g']),
-                _buildNutrientRow('Sugars', nutriments['sugars_100g']),
-                _buildNutrientRow('Sodium', nutriments['sodium_100g']),
-                _buildNutrientRow('Cholesterol', nutriments['cholesterol_100g']),
-                if (ingredients.isNotEmpty) ...[
-                  const SizedBox(height: 20),
-                  const Text(
-                    'Ingredients',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    ingredients,
-                    style: const TextStyle(fontSize: 14),
-                  ),
-                ],
-                if (allergens.isNotEmpty) ...[
-                  const SizedBox(height: 20),
-                  const Text(
-                    'Allergen Warning',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.red,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.red[50],
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.red[200]!),
-                    ),
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(25.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: allergens
-                          .map((allergen) => Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 2),
-                                child: Text(
-                                  '• $allergen',
-                                  style: const TextStyle(color: Colors.red),
+                      children: [
+                        // Food Image and Info
+                        Center(
+                          child: Column(
+                            children: [
+                              Container(
+                                width: 200,
+                                height: 200,
+                                decoration: BoxDecoration(
+                                  color: Colors.black87,
+                                  borderRadius: BorderRadius.circular(100),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.grey.withOpacity(0.3),
+                                      spreadRadius: 0,
+                                      blurRadius: 20,
+                                      offset: const Offset(0, 10),
+                                    ),
+                                  ],
                                 ),
-                              ))
-                          .toList(),
+                                child: const Icon(
+                                  Icons.restaurant_menu,
+                                  color: Colors.white,
+                                  size: 80,
+                                ),
+                              ),
+                              const SizedBox(height: 25),
+                              Text(
+                                productName,
+                                style: const TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black87,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                              if (brand.isNotEmpty) ...[
+                                const SizedBox(height: 8),
+                                Text(
+                                  brand,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.grey[600],
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+
+                        const SizedBox(height: 30),
+
+                        // Description
+                        if (ingredients.isNotEmpty) ...[
+                          Text(
+                            ingredients.length > 150
+                                ? '${ingredients.substring(0, 150)}...'
+                                : ingredients,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Colors.black54,
+                              height: 1.5,
+                            ),
+                          ),
+                          const SizedBox(height: 30),
+                        ],
+
+                        // Nutrition Facts Grid
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildNutritionCard(
+                                '${(nutriments['carbohydrates_100g'] ?? 0).toStringAsFixed(0)}g',
+                                'Carbs',
+                              ),
+                            ),
+                            const SizedBox(width: 15),
+                            Expanded(
+                              child: _buildNutritionCard(
+                                '${(nutriments['proteins_100g'] ?? 0).toStringAsFixed(0)}g',
+                                'Proteins',
+                              ),
+                            ),
+                            const SizedBox(width: 15),
+                            Expanded(
+                              child: _buildNutritionCard(
+                                '${(nutriments['fat_100g'] ?? 0).toStringAsFixed(0)}g',
+                                'Fats',
+                              ),
+                            ),
+                            const SizedBox(width: 15),
+                            Expanded(
+                              child: _buildNutritionCard(
+                                '${(nutriments['sugars_100g'] ?? 0).toStringAsFixed(0)}g',
+                                'Sugars',
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: 30),
+
+                        // Calories Section
+                        if (nutriments['energy-kcal_100g'] != null) ...[
+                          Container(
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              color: Colors.grey[50],
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.local_fire_department,
+                                  color: Colors.orange[600],
+                                  size: 24,
+                                ),
+                                const SizedBox(width: 10),
+                                Text(
+                                  '${nutriments['energy-kcal_100g'].toStringAsFixed(0)} Calories',
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 25),
+                        ],
+
+                        // Allergen Warning
+                        if (allergens.isNotEmpty) ...[
+                          Container(
+                            padding: const EdgeInsets.all(15),
+                            decoration: BoxDecoration(
+                              color: Colors.red[50],
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: Colors.red[200]!,
+                                width: 1,
+                              ),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.warning,
+                                      color: Colors.red[600],
+                                      size: 20,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    const Text(
+                                      'Allergen Warning',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.red,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 10),
+                                ...allergens
+                                    .map(
+                                      (allergen) => Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          vertical: 2,
+                                        ),
+                                        child: Text(
+                                          '• $allergen',
+                                          style: const TextStyle(
+                                            color: Colors.red,
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                      ),
+                                    )
+                                    .toList(),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 25),
+                        ],
+
+                        // Check Recipe Button
+                        Container(
+                          width: double.infinity,
+                          height: 55,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Recipe feature coming soon!'),
+                                  backgroundColor: Color(0xFF2E8B57),
+                                ),
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF2E8B57),
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(27),
+                              ),
+                            ),
+                            child: const Text(
+                              'CHECK THE RECIPE',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ),
+                        ),
+
+                        const SizedBox(height: 20),
+                      ],
                     ),
                   ),
-                ],
-                const SizedBox(height: 20),
-                Center(
-                  child: ElevatedButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: const Text('Close'),
-                  ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         );
       },
     );
   }
 
-  Widget _buildNutrientRow(String label, dynamic value) {
-    String displayValue;
-    if (value == null) {
-      displayValue = 'N/A';
-    } else {
-      String unit = 'g';
-      if (label == 'Calories') {
-        unit = 'kcal';
-      } else if (label == 'Sodium' || label == 'Cholesterol') {
-        unit = 'mg';
-      }
-      displayValue = '${value.toStringAsFixed(1)}$unit';
-    }
-    
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  Widget _buildNutritionCard(String value, String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey[200]!, width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 0,
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
         children: [
           Text(
-            label,
-            style: const TextStyle(fontSize: 16),
+            value,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
           ),
+          const SizedBox(height: 5),
           Text(
-            displayValue,
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey[600],
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ],
       ),
@@ -536,202 +729,333 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
 
   Widget _buildEnhancedHomePage() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(20.0),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Welcome Header
-          const Text(
-            'Welcome to MindSprint! 👋',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF2D3748),
-            ),
-          ),
-          const SizedBox(height: 10),
-          const Text(
-            'Ready to scan and eat healthy?',
-            style: TextStyle(fontSize: 16, color: Color(0xFF718096)),
-          ),
-          const SizedBox(height: 30),
-
-          // Main Scan Button
+          // Header Section
           Container(
-            width: double.infinity,
-            height: 140,
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Color(0xFF6A5ACD),
-                  Color(0xFF9370DB),
-                  Color(0xFFBA55D3),
-                ],
-              ),
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF6A5ACD).withOpacity(0.3),
-                  spreadRadius: 0,
-                  blurRadius: 20,
-                  offset: const Offset(0, 10),
-                ),
-              ],
-            ),
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                borderRadius: BorderRadius.circular(20),
-                onTap: _startScanner,
-                child: const Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.qr_code_scanner, size: 50, color: Colors.white),
-                    SizedBox(height: 10),
-                    Text(
-                      'Scan Barcode',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                    Text(
-                      'Point your camera at the product barcode',
-                      style: TextStyle(fontSize: 12, color: Colors.white70),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
-
-          // Upload Image Button
-          Container(
-            width: double.infinity,
-            height: 60,
-            decoration: BoxDecoration(
+            padding: const EdgeInsets.fromLTRB(20, 50, 20, 30),
+            decoration: const BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(15),
-              border: Border.all(color: const Color(0xFF6A5ACD), width: 2),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.1),
-                  spreadRadius: 0,
-                  blurRadius: 10,
-                  offset: const Offset(0, 2),
-                ),
-              ],
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(25),
+                bottomRight: Radius.circular(25),
+              ),
             ),
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                borderRadius: BorderRadius.circular(15),
-                onTap: _selectImageFromGallery,
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Icon(Icons.upload_file, color: Color(0xFF6A5ACD), size: 24),
-                    SizedBox(width: 10),
-                    Text(
-                      'Upload Image',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF6A5ACD),
+                    const Icon(Icons.menu, size: 24, color: Colors.black54),
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[100],
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(
+                        Icons.search,
+                        size: 20,
+                        color: Colors.black54,
                       ),
                     ),
                   ],
                 ),
-              ),
+                const SizedBox(height: 25),
+                const Text(
+                  "Let's Check Food",
+                  style: TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF2E8B57),
+                  ),
+                ),
+                const Text(
+                  "Nutrition & Calories",
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w500,
+                    color: Color(0xFF2E8B57),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  "Select food type to see calories",
+                  style: TextStyle(fontSize: 14, color: Colors.black54),
+                ),
+                const SizedBox(height: 25),
+
+                // Food Category Icons
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _buildCategoryIcon(Icons.local_dining, "Fast Food", false),
+                    _buildCategoryIcon(Icons.restaurant, "Vegetables", true),
+                    _buildCategoryIcon(Icons.local_bar, "Drinks", false),
+                    _buildCategoryIcon(
+                      Icons.shopping_basket,
+                      "Groceries",
+                      false,
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
 
-          // Selected Image Display
-          if (_selectedImage != null) ...[
-            const SizedBox(height: 20),
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(15),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.1),
-                    spreadRadius: 0,
-                    blurRadius: 10,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Selected Image:',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF2D3748),
+          // Food Cards Section
+          Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildFoodCard(
+                        "Vegetables &\nBeans",
+                        "43 Calories",
+                        Colors.green[100]!,
+                        Icons.eco,
+                        Colors.green,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 10),
-                  Container(
-                    height: 200,
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey.shade300),
-                      borderRadius: BorderRadius.circular(10),
+                    const SizedBox(width: 15),
+                    Expanded(
+                      child: _buildFoodCard(
+                        "Vegetables &\nMeat",
+                        "43 Calories",
+                        Colors.orange[100]!,
+                        Icons.restaurant_menu,
+                        Colors.orange,
+                      ),
                     ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: Image.file(_selectedImage!, fit: BoxFit.cover),
-                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+
+                // Balanced Diet Card
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.1),
+                        spreadRadius: 0,
+                        blurRadius: 20,
+                        offset: const Offset(0, 5),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 15),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  child: Row(
                     children: [
                       Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: _selectImageFromGallery,
-                          icon: const Icon(Icons.refresh, size: 18),
-                          label: const Text('Change'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF6A5ACD),
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              "Balanced Diet",
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87,
+                              ),
                             ),
-                          ),
+                            const SizedBox(height: 8),
+                            const Text(
+                              "Stay healthy and young by\ntaking a balanced diet!",
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.black54,
+                                height: 1.4,
+                              ),
+                            ),
+                            const SizedBox(height: 15),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 10,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF2E8B57),
+                                borderRadius: BorderRadius.circular(25),
+                              ),
+                              child: const Text(
+                                "Learn More",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () {
-                            setState(() {
-                              _selectedImage = null;
-                            });
-                          },
-                          icon: const Icon(Icons.delete, size: 18),
-                          label: const Text('Remove'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFE53E3E),
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
+                      const SizedBox(width: 15),
+                      Container(
+                        width: 80,
+                        height: 80,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(15),
+                          image: const DecorationImage(
+                            image: NetworkImage(
+                              'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=150&h=150&fit=crop',
                             ),
+                            fit: BoxFit.cover,
                           ),
                         ),
                       ),
                     ],
                   ),
-                ],
+                ),
+
+                const SizedBox(height: 30),
+
+                // Scan Button
+                Container(
+                  width: double.infinity,
+                  height: 60,
+                  child: ElevatedButton.icon(
+                    onPressed: _startScanner,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF2E8B57),
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                    ),
+                    icon: const Icon(Icons.qr_code_scanner, size: 24),
+                    label: const Text(
+                      "Scan Food Barcode",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+
+                // Upload Image Button
+                const SizedBox(height: 15),
+                Container(
+                  width: double.infinity,
+                  height: 60,
+                  child: ElevatedButton.icon(
+                    onPressed: _selectImageFromGallery,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: const Color(0xFF2E8B57),
+                      elevation: 0,
+                      side: const BorderSide(
+                        color: Color(0xFF2E8B57),
+                        width: 2,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                    ),
+                    icon: const Icon(Icons.upload_file, size: 24),
+                    label: const Text(
+                      "Upload Food Image",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Selected Image Display
+          if (_selectedImage != null) ...[
+            Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.1),
+                      spreadRadius: 0,
+                      blurRadius: 15,
+                      offset: const Offset(0, 5),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Selected Image:',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 15),
+                    Container(
+                      height: 200,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(15),
+                        image: DecorationImage(
+                          image: FileImage(_selectedImage!),
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 15),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: _selectImageFromGallery,
+                            icon: const Icon(Icons.refresh, size: 18),
+                            label: const Text('Change'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF2E8B57),
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(15),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              setState(() {
+                                _selectedImage = null;
+                              });
+                            },
+                            icon: const Icon(Icons.delete, size: 18),
+                            label: const Text('Remove'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red[400],
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(15),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
@@ -744,14 +1068,14 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
                 children: [
                   CircularProgressIndicator(
                     valueColor: AlwaysStoppedAnimation<Color>(
-                      Color(0xFF6A5ACD),
+                      Color(0xFF2E8B57),
                     ),
                   ),
                   SizedBox(height: 10),
                   Text(
                     'Processing...',
                     style: TextStyle(
-                      color: Color(0xFF6A5ACD),
+                      color: Color(0xFF2E8B57),
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -759,6 +1083,104 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
               ),
             ),
           ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCategoryIcon(IconData icon, String label, bool isSelected) {
+    return Column(
+      children: [
+        Container(
+          width: 60,
+          height: 60,
+          decoration: BoxDecoration(
+            color: isSelected ? const Color(0xFF2E8B57) : Colors.grey[100],
+            borderRadius: BorderRadius.circular(15),
+          ),
+          child: Icon(
+            icon,
+            color: isSelected ? Colors.white : Colors.grey[600],
+            size: 28,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 11,
+            color: isSelected ? const Color(0xFF2E8B57) : Colors.grey[600],
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFoodCard(
+    String title,
+    String calories,
+    Color backgroundColor,
+    IconData icon,
+    Color iconColor,
+  ) {
+    return Container(
+      height: 160,
+      padding: const EdgeInsets.all(15),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 0,
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 50,
+            height: 50,
+            decoration: BoxDecoration(
+              color: backgroundColor,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: iconColor, size: 24),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                  height: 1.2,
+                ),
+              ),
+              const SizedBox(height: 5),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    calories,
+                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                  ),
+                  Icon(
+                    Icons.arrow_forward_ios,
+                    size: 12,
+                    color: Colors.grey[400],
+                  ),
+                ],
+              ),
+            ],
+          ),
         ],
       ),
     );
@@ -1037,35 +1459,31 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
 class ScannerOverlayPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    final windowWidth = 280.0;  // Wider scanning window for better barcode capture
-    final windowHeight = 120.0;  // Reduced height to match barcode proportions
+    final windowWidth =
+        280.0; // Wider scanning window for better barcode capture
+    final windowHeight = 120.0; // Reduced height to match barcode proportions
     final center = Offset(size.width / 2, size.height / 2);
 
     final backgroundPath = Path()
       ..addRect(Rect.fromLTWH(0, 0, size.width, size.height));
     final windowPath = Path()
-      ..addRect(Rect.fromCenter(
-        center: center,
-        width: windowWidth,
-        height: windowHeight,
-      ));
+      ..addRect(
+        Rect.fromCenter(
+          center: center,
+          width: windowWidth,
+          height: windowHeight,
+        ),
+      );
     final overlayPath = Path.combine(
       PathOperation.difference,
       backgroundPath,
       windowPath,
     );
 
-    canvas.drawPath(
-      overlayPath,
-      Paint()..color = Colors.black54,
-    );
+    canvas.drawPath(overlayPath, Paint()..color = Colors.black54);
 
     canvas.drawRect(
-      Rect.fromCenter(
-        center: center,
-        width: windowWidth,
-        height: windowHeight,
-      ),
+      Rect.fromCenter(center: center, width: windowWidth, height: windowHeight),
       Paint()
         ..color = Colors.white
         ..style = PaintingStyle.stroke
@@ -1090,17 +1508,50 @@ class ScannerOverlayPainter extends CustomPainter {
     }
 
     // Draw corners
-    drawCorner(Offset(center.dx - windowWidth / 2, center.dy - windowHeight / 2), true);
-    drawCorner(Offset(center.dx - windowWidth / 2, center.dy - windowHeight / 2), false);
-    
-    drawCorner(Offset(center.dx + windowWidth / 2, center.dy - windowHeight / 2), true);
-    drawCorner(Offset(center.dx + windowWidth / 2 - markerLength, center.dy - windowHeight / 2), true);
-    
-    drawCorner(Offset(center.dx - windowWidth / 2, center.dy + windowHeight / 2), true);
-    drawCorner(Offset(center.dx - windowWidth / 2, center.dy + windowHeight / 2 - markerLength), false);
-    
-    drawCorner(Offset(center.dx + windowWidth / 2, center.dy + windowHeight / 2), false);
-    drawCorner(Offset(center.dx + windowWidth / 2 - markerLength, center.dy + windowHeight / 2), true);
+    drawCorner(
+      Offset(center.dx - windowWidth / 2, center.dy - windowHeight / 2),
+      true,
+    );
+    drawCorner(
+      Offset(center.dx - windowWidth / 2, center.dy - windowHeight / 2),
+      false,
+    );
+
+    drawCorner(
+      Offset(center.dx + windowWidth / 2, center.dy - windowHeight / 2),
+      true,
+    );
+    drawCorner(
+      Offset(
+        center.dx + windowWidth / 2 - markerLength,
+        center.dy - windowHeight / 2,
+      ),
+      true,
+    );
+
+    drawCorner(
+      Offset(center.dx - windowWidth / 2, center.dy + windowHeight / 2),
+      true,
+    );
+    drawCorner(
+      Offset(
+        center.dx - windowWidth / 2,
+        center.dy + windowHeight / 2 - markerLength,
+      ),
+      false,
+    );
+
+    drawCorner(
+      Offset(center.dx + windowWidth / 2, center.dy + windowHeight / 2),
+      false,
+    );
+    drawCorner(
+      Offset(
+        center.dx + windowWidth / 2 - markerLength,
+        center.dy + windowHeight / 2,
+      ),
+      true,
+    );
   }
 
   @override

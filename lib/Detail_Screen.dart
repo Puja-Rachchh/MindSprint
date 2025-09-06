@@ -2,14 +2,21 @@ import 'package:flutter/material.dart';
 import 'Signin_Screen.dart';
 import 'Login_Screen.dart';
 
-class DetailScreen extends StatelessWidget {
+class DetailScreen extends StatefulWidget {
+  DetailScreen({Key? key}) : super(key: key);
+
+  @override
+  State<DetailScreen> createState() => _DetailScreenState();
+}
+
+class _DetailScreenState extends State<DetailScreen> {
   final TextEditingController heightController = TextEditingController();
   final TextEditingController weightController = TextEditingController();
   final TextEditingController allergicController = TextEditingController();
   final TextEditingController diseaseController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
 
-  DetailScreen({Key? key}) : super(key: key);
+  String _selectedGender = 'Male';
 
   Future<void> _saveDetailData() async {
     // Add additional details to the existing user data
@@ -18,6 +25,7 @@ class DetailScreen extends StatelessWidget {
     SigninScreen.userData['user_allergic'] = allergicController.text;
     SigninScreen.userData['user_disease'] = diseaseController.text;
     SigninScreen.userData['user_description'] = descriptionController.text;
+    SigninScreen.userData['user_gender'] = _selectedGender;
   }
 
   @override
@@ -74,6 +82,65 @@ class DetailScreen extends StatelessWidget {
                   border: OutlineInputBorder(),
                 ),
                 keyboardType: TextInputType.number,
+              ),
+              const SizedBox(height: 16),
+
+              // Gender Selection with Radio Buttons
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Gender',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: RadioListTile<String>(
+                              title: const Text('Male'),
+                              value: 'Male',
+                              groupValue: _selectedGender,
+                              onChanged: (String? value) {
+                                setState(() {
+                                  _selectedGender = value!;
+                                });
+                              },
+                            ),
+                          ),
+                          Expanded(
+                            child: RadioListTile<String>(
+                              title: const Text('Female'),
+                              value: 'Female',
+                              groupValue: _selectedGender,
+                              onChanged: (String? value) {
+                                setState(() {
+                                  _selectedGender = value!;
+                                });
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                      RadioListTile<String>(
+                        title: const Text('Other'),
+                        value: 'Other',
+                        groupValue: _selectedGender,
+                        onChanged: (String? value) {
+                          setState(() {
+                            _selectedGender = value!;
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                ),
               ),
               const SizedBox(height: 16),
               TextField(
