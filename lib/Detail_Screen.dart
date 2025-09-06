@@ -3,7 +3,9 @@ import 'Signin_Screen.dart';
 import 'Login_Screen.dart';
 
 class DetailScreen extends StatefulWidget {
-  DetailScreen({Key? key}) : super(key: key);
+
+  const DetailScreen({Key? key}) : super(key: key);
+
 
   @override
   State<DetailScreen> createState() => _DetailScreenState();
@@ -16,7 +18,9 @@ class _DetailScreenState extends State<DetailScreen> {
   final TextEditingController diseaseController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
 
-  String _selectedGender = 'Male';
+  String? _selectedGender;
+  final List<String> _genderOptions = ['Male', 'Female', 'Other'];
+
 
   Future<void> _saveDetailData() async {
     // Add additional details to the existing user data
@@ -25,6 +29,7 @@ class _DetailScreenState extends State<DetailScreen> {
     SigninScreen.userData['user_allergic'] = allergicController.text;
     SigninScreen.userData['user_disease'] = diseaseController.text;
     SigninScreen.userData['user_description'] = descriptionController.text;
+
     SigninScreen.userData['user_gender'] = _selectedGender;
   }
 
@@ -65,6 +70,8 @@ class _DetailScreenState extends State<DetailScreen> {
         ),
       ),
     );
+
+
   }
 
   @override
@@ -156,6 +163,7 @@ class _DetailScreenState extends State<DetailScreen> {
                       ),
                     ],
                   ),
+
                   const SizedBox(height: 16),
                   Row(
                     children: [
@@ -207,6 +215,39 @@ class _DetailScreenState extends State<DetailScreen> {
                     ],
                   ),
                 ],
+
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Additional details form
+              // ...existing code...
+              // ...existing code...
+              TextField(
+                controller: heightController,
+                decoration: const InputDecoration(
+                  labelText: 'Height (cm)',
+                  border: OutlineInputBorder(),
+                ),
+                keyboardType: TextInputType.number,
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: weightController,
+                decoration: const InputDecoration(
+                  labelText: 'Weight (kg)',
+                  border: OutlineInputBorder(),
+                ),
+                keyboardType: TextInputType.number,
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: allergicController,
+                decoration: const InputDecoration(
+                  labelText: 'Allergic to',
+                  border: OutlineInputBorder(),
+                ),
+
               ),
             ),
             const SizedBox(height: 20),
