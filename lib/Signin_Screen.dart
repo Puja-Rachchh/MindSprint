@@ -1,100 +1,186 @@
 import 'package:flutter/material.dart';
-
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'Dashboard_Screen.dart';
+import 'Login_Screen.dart';
+import 'Detail_Screen.dart';
 
 class SigninScreen extends StatefulWidget {
-  const SigninScreen({super.key});
+  const SigninScreen({Key? key}) : super(key: key);
+
+  // Static map to store user data temporarily (in-memory storage)
+  static Map<String, String> userData = {};
 
   @override
   State<SigninScreen> createState() => _SigninScreenState();
 }
 
 class _SigninScreenState extends State<SigninScreen> {
-  final _formKey = GlobalKey<FormState>();
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController petNameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  final TextEditingController confirmPasswordController =
+      TextEditingController();
+  final TextEditingController ageController = TextEditingController();
+  String? _selectedGender = null;
+  final List<String> _genderOptions = ['Male', 'Female', 'Other'];
 
-  bool isLoading = false;
-
-  Future<void> signUpUser() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    setState(() => isLoading = true);
-
-    try {
-      // Create user in Firebase Authentication
-      UserCredential userCredential = await FirebaseAuth.instance
-          .createUserWithEmailAndPassword(
-            email: emailController.text.trim(),
-            password: passwordController.text.trim(),
-          );
-
-      // Save user data in Firestore
-      await FirebaseFirestore.instance
-          .collection("users")
-          .doc(userCredential.user!.uid)
-          .set({
-            "email": emailController.text.trim(),
-            "createdAt": DateTime.now(),
-          });
-
-      // Navigate to Dashboard after signup
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const DashboardScreen()),
-      );
-    } on FirebaseAuthException catch (e) {
-      String message = "Signup failed";
-      if (e.code == 'email-already-in-use') {
-        message = "This email is already registered!";
-      } else if (e.code == 'weak-password') {
-        message = "Password should be at least 6 characters!";
-      }
-
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(message)));
-    } finally {
-      setState(() => isLoading = false);
-    }
-
+  Future<void> _saveUserData() async {
+    // Store data in memory instead of SharedPreferences
+    SigninScreen.userData['user_name'] = nameController.text;
+    SigninScreen.userData['user_pet_name'] = petNameController.text;
+    SigninScreen.userData['user_email'] = emailController.text;
+    SigninScreen.userData['user_password'] = passwordController.text;
+    SigninScreen.userData['user_age'] = ageController.text;
+    SigninScreen.userData['user_gender'] = _selectedGender ?? '';
+    SigninScreen.userData['gender'] = _selectedGender ?? '';
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Sign Up")),
+      appBar: AppBar(title: const Text('Sign In')),
       body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
+        padding: const EdgeInsets.all(16.0),
+        child: SingleChildScrollView(
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              TextFormField(
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(
+                  labelText: 'Name',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: petNameController,
+                decoration: const InputDecoration(
+                  labelText: 'Pet Name',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
                 controller: emailController,
+                decoration: const InputDecoration(
+                  labelText: 'Email',
+                  border: OutlineInputBorder(),
+                ),
                 keyboardType: TextInputType.emailAddress,
-                decoration: const InputDecoration(labelText: "Email"),
-                validator: (value) => value!.isEmpty ? "Enter email" : null,
               ),
-              const SizedBox(height: 10),
-              TextFormField(
+              const SizedBox(height: 16),
+              TextField(
                 controller: passwordController,
+                decoration: const InputDecoration(
+                  labelText: 'Password',
+                  border: OutlineInputBorder(),
+                ),
                 obscureText: true,
-                decoration: const InputDecoration(labelText: "Password"),
-                validator: (value) => value!.length < 6
-                    ? "Password must be at least 6 chars"
-                    : null,
               ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: confirmPasswordController,
+                decoration: const InputDecoration(
+                  labelText: 'Confirm Password',
+                  border: OutlineInputBorder(),
+                ),
+                obscureText: true,
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: ageController,
+                decoration: const InputDecoration(
+                  labelText: 'Age',
+                  border: OutlineInputBorder(),
+                ),
+                keyboardType: TextInputType.number,
+              ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<String>(
+                decoration: const InputDecoration(
+                  labelText: 'Gender',
+                  border: OutlineInputBorder(),
+                ),
+                value: _selectedGender,
+                items: [
+                  const DropdownMenuItem(value: 'Male', child: Text('Male')),
+                  const DropdownMenuItem(
+                    value: 'Female',
+                    child: Text('Female'),
+                  ),
+                  const DropdownMenuItem(value: 'Other', child: Text('Other')),
+                ],
+                onChanged: (value) {
+                  setState(() {
+                    _selectedGender = value;
+                  });
+                },
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: () {
+                  // Validate all fields are filled
+                  if (nameController.text.isEmpty ||
+                      petNameController.text.isEmpty ||
+                      emailController.text.isEmpty ||
+                      passwordController.text.isEmpty ||
+                      confirmPasswordController.text.isEmpty ||
+                      ageController.text.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Please fill all fields')),
+                    );
+                    return;
+                  }
 
-              const SizedBox(height: 20),
-              isLoading
-                  ? const CircularProgressIndicator()
-                  : ElevatedButton(
-                      onPressed: signUpUser,
-                      child: const Text("Sign Up"),
-                    ),
+                  // Validate password match
+                  if (passwordController.text !=
+                      confirmPasswordController.text) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Passwords do not match')),
+                    );
+                    return;
+                  }
+
+                  // Store user data in local storage
+                  _saveUserData()
+                      .then((_) {
+                        // Show success message
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Account created successfully!'),
+                          ),
+                        );
+
+                        // Navigate to detail screen
+                        Navigator.of(context).pushReplacement(
+                          MaterialPageRoute(
+                            builder: (context) => DetailScreen(),
+                          ),
+                        );
+                      })
+                      .catchError((error) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Error: ${error.toString()}')),
+                        );
+                      });
+                },
+                child: const Text('Submit'),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text('Already have an account? '),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(builder: (context) => LoginScreen()),
+                      );
+                    },
+                    child: const Text('Login'),
+                  ),
+                ],
+              ),
             ],
           ),
         ),
