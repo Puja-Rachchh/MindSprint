@@ -185,7 +185,29 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
             keyboardType: TextInputType.number,
           ),
           const SizedBox(height: 15),
-          _buildGenderDropdown(),
+          _buildGenderText(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGenderText() {
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 16.0),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade50,
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: Colors.grey.shade300),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.people, color: Color(0xFF6A5ACD)),
+          const SizedBox(width: 12),
+          Text(
+            'Gender: _selectedGender',
+            style: const TextStyle(fontSize: 16),
+          ),
         ],
       ),
     );
@@ -324,31 +346,11 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
           borderSide: const BorderSide(color: Color(0xFF6A5ACD), width: 2),
         ),
         filled: true,
-        fillColor: enabled ? Colors.grey.shade50 : Colors.grey.shade200,
       ),
     );
   }
 
-  Widget _buildGenderDropdown() {
-    return DropdownButtonFormField<String>(
-      value: _selectedGender,
-      decoration: InputDecoration(
-        labelText: 'Gender',
-        prefixIcon: const Icon(Icons.people, color: Color(0xFF6A5ACD)),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
-        filled: true,
-        fillColor: Colors.grey.shade50,
-      ),
-      items: ['Male', 'Female', 'Other'].map((gender) {
-        return DropdownMenuItem(value: gender, child: Text(gender));
-      }).toList(),
-      onChanged: (value) {
-        setState(() {
-          _selectedGender = value!;
-        });
-      },
-    );
-  }
+  // ...existing code...
 
   Widget _buildSaveButton() {
     return SizedBox(
@@ -415,7 +417,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 );
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFE53E3E),
+                backgroundColor: const Color(0xFF6A5ACD),
               ),
               child: const Text('Logout'),
             ),
