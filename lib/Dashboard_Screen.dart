@@ -330,16 +330,15 @@ class _DashboardScreenState extends State<DashboardScreen>
 
     try {
       debugPrint('Fetching info for barcode: $barcode');
+      debugPrint('API URL: https://trackapi.nutritionix.com/v2/search/item?upc=$barcode');
       // Try with Nutritionix API
-      final response = await http.post(
-        Uri.parse('https://trackapi.nutritionix.com/v2/natural/nutrients'),
+      final response = await http.get(
+        Uri.parse('https://trackapi.nutritionix.com/v2/search/item?upc=$barcode'),
         headers: {
           'x-app-id': nutritionixAppId,
           'x-app-key': nutritionixApiKey,
           'Accept': 'application/json',
-          'Content-Type': 'application/json',
         },
-        body: json.encode({'query': 'KitKat chocolate bar', 'locale': 'en_US'}),
       );
 
       if (!mounted) return;
@@ -352,28 +351,38 @@ class _DashboardScreenState extends State<DashboardScreen>
         if (data['foods'] != null && data['foods'].isNotEmpty) {
           final foodData = data['foods'][0];
           debugPrint('Found food data: ${json.encode(foodData)}');
-          setState(() {
-            _productInfo = {
-              'product_name': foodData['food_name'] ?? 'Unknown Product',
-              'brand': foodData['brand_name'] ?? 'Unknown Brand',
-              'serving_size':
-                  '${foodData['serving_qty']} ${foodData['serving_unit']}',
-              'nutriments': {
-                'energy-kcal_100g': foodData['nf_calories'],
-                'proteins_100g': foodData['nf_protein'],
-                'carbohydrates_100g': foodData['nf_total_carbohydrate'],
-                'fat_100g': foodData['nf_total_fat'],
-                'fiber_100g': foodData['nf_dietary_fiber'],
-                'sugars_100g': foodData['nf_sugars'],
-                'sodium_100g': foodData['nf_sodium'],
-                'cholesterol_100g': foodData['nf_cholesterol'],
-              },
-              'allergens_tags': _extractAllergens(foodData),
-              'ingredients': foodData['nf_ingredient_statement'] ?? '',
-            };
-            _isLoading = false;
-          });
-          _showNutritionalInfo();
+          
+          // Don't proceed to fallback if we have valid data
+          if (foodData != null) {
+            setState(() {
+              _productInfo = {
+                'product_name': foodData['food_name'] ?? 'Unknown Product',
+                'brand': foodData['brand_name'] ?? 'Unknown Brand',
+                'serving_size':
+                    '${foodData['serving_qty']} ${foodData['serving_unit']}',
+                'nutriments': {
+                  'energy-kcal_100g': foodData['nf_calories'] ?? 0,
+                  'proteins_100g': foodData['nf_protein'] ?? 0,
+                  'carbohydrates_100g': foodData['nf_total_carbohydrate'] ?? 0,
+                  'fat_100g': foodData['nf_total_fat'] ?? 0,
+                  'fiber_100g': foodData['nf_dietary_fiber'] ?? 0,
+                  'sugars_100g': foodData['nf_sugars'] ?? 0,
+                  'sodium_100g': foodData['nf_sodium'] ?? 0,
+                  'cholesterol_100g': foodData['nf_cholesterol'] ?? 0,
+                },
+                'allergens_tags': _extractAllergens(foodData),
+                'ingredients': foodData['nf_ingredient_statement'] ?? '',
+                'photo': {
+                  'thumb': foodData['photo']?['thumb'],
+                  'highres': foodData['photo']?['highres'],
+                  'is_user_uploaded': foodData['photo']?['is_user_uploaded'] ?? false,
+                },
+              };
+              _isLoading = false;
+            });
+            _showNutritionalInfo();
+            return; // Exit the function here if we successfully processed the data
+          }
         } else {
           _showError('Product not found');
         }
@@ -488,6 +497,56 @@ class _DashboardScreenState extends State<DashboardScreen>
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
+                if (_productInfo!['photo']?['thumb'] != null) ...[
+                  Center(
+                    child: Container(
+                      width: 200,
+                      height: 200,
+                      margin: const EdgeInsets.only(bottom: 20),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.grey.withOpacity(0.3),
+                            spreadRadius: 2,
+                            blurRadius: 5,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: Image.network(
+                          _productInfo!['photo']['thumb'],
+                          fit: BoxFit.cover,
+                          loadingBuilder: (context, child, loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return Center(
+                              child: CircularProgressIndicator(
+                                value: loadingProgress.expectedTotalBytes != null
+                                    ? loadingProgress.cumulativeBytesLoaded /
+                                        loadingProgress.expectedTotalBytes!
+                                    : null,
+                              ),
+                            );
+                          },
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              color: Colors.grey[200],
+                              child: const Center(
+                                child: Icon(
+                                  Icons.image_not_supported,
+                                  size: 40,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
                 Text(
                   productName,
                   style: Theme.of(context).textTheme.headlineSmall,
@@ -561,8 +620,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: allergens
-                          .map(
+                      children: (allergens as List).map<Widget>(
                             (allergen) => Padding(
                               padding: const EdgeInsets.symmetric(vertical: 2),
                               child: Text(
@@ -570,8 +628,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                                 style: const TextStyle(color: Colors.red),
                               ),
                             ),
-                          )
-                          .toList(),
+                          ).toList(),
                     ),
                   ),
                 ],
