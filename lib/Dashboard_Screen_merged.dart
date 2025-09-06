@@ -4,8 +4,6 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:image_picker/image_picker.dart';
-import 'dart:io';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({Key? key}) : super(key: key);
@@ -19,8 +17,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
   final MobileScannerController cameraController = MobileScannerController();
   Map<String, dynamic>? _productInfo;
   bool _isLoading = false;
-  final ImagePicker _imagePicker = ImagePicker();
-  File? _selectedImage;
 
   void _onItemTapped(int index) {
     setState(() {
@@ -31,7 +27,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget _getSelectedPage() {
     switch (_selectedIndex) {
       case 0:
-        return _buildEnhancedHomePage();
+        return _buildHomePage();
       case 1:
         return _buildNutrifyPage();
       case 2:
@@ -39,30 +35,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       case 3:
         return _buildProfilePage();
       default:
-        return _buildEnhancedHomePage();
-    }
-  }
-
-  // Image selection method
-  Future<void> _selectImageFromGallery() async {
-    try {
-      final XFile? image = await _imagePicker.pickImage(
-        source: ImageSource.gallery,
-      );
-      if (image != null && mounted) {
-        setState(() {
-          _selectedImage = File(image.path);
-        });
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Image selected successfully!')));
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error selecting image: $e')));
-      }
+        return _buildHomePage();
     }
   }
 
@@ -213,232 +186,55 @@ class _DashboardScreenState extends State<DashboardScreen> {
     }
   }
 
-  Widget _buildEnhancedHomePage() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(20.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Welcome Header
-          const Text(
-            'Welcome to MindSprint! 👋',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF2D3748),
+  Widget _buildHomePage() {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text(
+              'Welcome to Dashboard',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
-          ),
-          const SizedBox(height: 10),
-          const Text(
-            'Ready to scan and eat healthy?',
-            style: TextStyle(fontSize: 16, color: Color(0xFF718096)),
-          ),
-          const SizedBox(height: 30),
-
-          // Main Scan Button
-          Container(
-            width: double.infinity,
-            height: 140,
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Color(0xFF6A5ACD),
-                  Color(0xFF9370DB),
-                  Color(0xFFBA55D3),
-                ],
-              ),
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF6A5ACD).withOpacity(0.3),
-                  spreadRadius: 0,
-                  blurRadius: 20,
-                  offset: const Offset(0, 10),
-                ),
-              ],
-            ),
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                borderRadius: BorderRadius.circular(20),
-                onTap: _startScanner,
-                child: const Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.qr_code_scanner, size: 50, color: Colors.white),
-                    SizedBox(height: 10),
-                    Text(
-                      'Scan Barcode',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                    Text(
-                      'Point your camera at the product barcode',
-                      style: TextStyle(fontSize: 12, color: Colors.white70),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
+            const SizedBox(height: 40),
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton.icon(
+                onPressed: _startScanner,
+                icon: const Icon(Icons.qr_code_scanner),
+                label: const Text('Scan QR Code'),
+                style: ElevatedButton.styleFrom(
+                  textStyle: const TextStyle(fontSize: 18),
                 ),
               ),
             ),
-          ),
-          const SizedBox(height: 20),
-
-          // Upload Image Button
-          Container(
-            width: double.infinity,
-            height: 60,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(15),
-              border: Border.all(color: const Color(0xFF6A5ACD), width: 2),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.1),
-                  spreadRadius: 0,
-                  blurRadius: 10,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                borderRadius: BorderRadius.circular(15),
-                onTap: _selectImageFromGallery,
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.upload_file, color: Color(0xFF6A5ACD), size: 24),
-                    SizedBox(width: 10),
-                    Text(
-                      'Upload Image',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF6A5ACD),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-
-          // Selected Image Display
-          if (_selectedImage != null) ...[
             const SizedBox(height: 20),
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(15),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.1),
-                    spreadRadius: 0,
-                    blurRadius: 10,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Selected Image:',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF2D3748),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Container(
-                    height: 200,
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey.shade300),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: Image.file(_selectedImage!, fit: BoxFit.cover),
-                    ),
-                  ),
-                  const SizedBox(height: 15),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: _selectImageFromGallery,
-                          icon: const Icon(Icons.refresh, size: 18),
-                          label: const Text('Change'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF6A5ACD),
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () {
-                            setState(() {
-                              _selectedImage = null;
-                            });
-                          },
-                          icon: const Icon(Icons.delete, size: 18),
-                          label: const Text('Remove'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFE53E3E),
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  // TODO: Implement image upload functionality
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Upload Image clicked')),
+                  );
+                },
+                icon: const Icon(Icons.upload_file),
+                label: const Text('Upload Image'),
+                style: ElevatedButton.styleFrom(
+                  textStyle: const TextStyle(fontSize: 18),
+                ),
               ),
             ),
-          ],
-
-          // Loading Indicator
-          if (_isLoading) ...[
-            const SizedBox(height: 20),
-            const Center(
-              child: Column(
-                children: [
-                  CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      Color(0xFF6A5ACD),
-                    ),
-                  ),
-                  SizedBox(height: 10),
-                  Text(
-                    'Processing...',
-                    style: TextStyle(
-                      color: Color(0xFF6A5ACD),
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
+            if (_isLoading)
+              const Padding(
+                padding: EdgeInsets.all(20.0),
+                child: CircularProgressIndicator(),
               ),
-            ),
           ],
-        ],
+        ),
       ),
     );
   }
