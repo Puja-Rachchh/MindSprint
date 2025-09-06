@@ -113,7 +113,7 @@ class _HelpScreenState extends State<HelpScreen> {
             'Help & Support',
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
-          backgroundColor: const Color(0xFF2E8B57),
+          backgroundColor: const Color(0xFF6A5ACD),
           foregroundColor: Colors.white,
           elevation: 0,
           bottom: const TabBar(
@@ -329,12 +329,12 @@ class _GuidesTab extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF2E8B57).withOpacity(0.1),
+                    color: const Color(0xFF6A5ACD).withOpacity(0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Icon(
                     guide.icon,
-                    color: const Color(0xFF2E8B57),
+                    color: const Color(0xFF6A5ACD),
                     size: 24,
                   ),
                 ),
@@ -377,7 +377,7 @@ class _GuidesTab extends StatelessWidget {
                       width: 24,
                       height: 24,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF2E8B57),
+                        color: const Color(0xFF6A5ACD),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Center(
@@ -490,12 +490,12 @@ class _ContactTab extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: const Color(0xFF2E8B57).withOpacity(0.1),
+              color: const Color(0xFF6A5ACD).withOpacity(0.1),
               borderRadius: BorderRadius.circular(15),
             ),
             child: Column(
               children: [
-                const Icon(Icons.schedule, color: Color(0xFF2E8B57), size: 40),
+                const Icon(Icons.schedule, color: Color(0xFF6A5ACD), size: 40),
                 const SizedBox(height: 15),
                 const Text(
                   'Support Hours',
@@ -555,10 +555,10 @@ class _ContactTab extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF2E8B57).withOpacity(0.1),
+                    color: const Color(0xFF6A5ACD).withOpacity(0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Icon(icon, color: const Color(0xFF2E8B57), size: 24),
+                  child: Icon(icon, color: const Color(0xFF6A5ACD), size: 24),
                 ),
                 const SizedBox(width: 15),
                 Expanded(
@@ -586,7 +586,7 @@ class _ContactTab extends StatelessWidget {
                         description,
                         style: const TextStyle(
                           fontSize: 12,
-                          color: Color(0xFF2E8B57),
+                          color: Color(0xFF6A5ACD),
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -622,7 +622,7 @@ class _ContactTab extends StatelessWidget {
             ElevatedButton(
               onPressed: () => Navigator.of(context).pop(),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF2E8B57),
+                backgroundColor: const Color(0xFF6A5ACD),
               ),
               child: const Text('Got it'),
             ),
@@ -648,7 +648,7 @@ class _ContactTab extends StatelessWidget {
             ElevatedButton(
               onPressed: () => Navigator.of(context).pop(),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF2E8B57),
+                backgroundColor: const Color(0xFF6A5ACD),
               ),
               child: const Text('Got it'),
             ),
