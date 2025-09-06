@@ -18,21 +18,21 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       description:
           'Simply point your camera at any product barcode to get instant nutrition information',
       icon: Icons.qr_code_scanner,
-      color: const Color(0xFF6A5ACD),
+      color: const Color(0xFF2E8B57),
     ),
     OnboardingData(
       title: 'Get Nutrition Breakdown',
       description:
           'View detailed nutritional facts including calories, proteins, fats, and more',
       icon: Icons.analytics,
-      color: const Color(0xFF9370DB),
+      color: const Color(0xFF3CB371),
     ),
     OnboardingData(
       title: 'Personalized Allergen Warnings',
       description:
           'Receive instant alerts about allergens based on your personal dietary restrictions',
       icon: Icons.warning_rounded,
-      color: const Color(0xFFBA55D3),
+      color: const Color(0xFF20B2AA),
     ),
   ];
 

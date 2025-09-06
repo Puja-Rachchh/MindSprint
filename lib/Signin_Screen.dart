@@ -56,13 +56,12 @@ class SigninScreen extends StatelessWidget {
               TextField(
                 controller: petNameController,
                 decoration: const InputDecoration(
-                  labelText: 'Pet Name',
+                  labelText: 'Nick Name',
                   prefixIcon: Icon(Icons.pets, color: Color(0xFF2E8B57)),
                   border: OutlineInputBorder(),
                   focusedBorder: OutlineInputBorder(
                     borderSide: BorderSide(color: Color(0xFF2E8B57), width: 2),
                   ),
-                ),
                 ),
               ),
               const SizedBox(height: 16),

@@ -25,7 +25,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           'Settings',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        backgroundColor: const Color(0xFF6A5ACD),
+        backgroundColor: const Color(0xFF2E8B57),
         foregroundColor: Colors.white,
         elevation: 0,
       ),
@@ -310,14 +310,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: (iconColor ?? const Color(0xFF6A5ACD)).withOpacity(
+                  color: (iconColor ?? const Color(0xFF2E8B57)).withOpacity(
                     0.1,
                   ),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(
                   icon,
-                  color: iconColor ?? const Color(0xFF6A5ACD),
+                  color: iconColor ?? const Color(0xFF2E8B57),
                   size: 24,
                 ),
               ),
@@ -372,10 +372,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: const Color(0xFF6A5ACD).withOpacity(0.1),
+              color: const Color(0xFF2E8B57).withOpacity(0.1),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(icon, color: const Color(0xFF6A5ACD), size: 24),
+            child: Icon(icon, color: const Color(0xFF2E8B57), size: 24),
           ),
           const SizedBox(width: 15),
           Expanded(
@@ -401,7 +401,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           Switch(
             value: value,
             onChanged: onChanged,
-            activeColor: const Color(0xFF6A5ACD),
+            activeColor: const Color(0xFF2E8B57),
           ),
         ],
       ),
@@ -422,7 +422,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ElevatedButton(
               onPressed: () => Navigator.of(context).pop(),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF6A5ACD),
+                backgroundColor: const Color(0xFF2E8B57),
               ),
               child: const Text('OK'),
             ),
@@ -442,7 +442,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           applicationIcon: const Icon(
             Icons.qr_code_scanner,
             size: 50,
-            color: Color(0xFF6A5ACD),
+            color: Color(0xFF2E8B57),
           ),
           children: const [
             Text('Scan Smart, Eat Healthy'),

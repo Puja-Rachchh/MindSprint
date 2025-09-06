@@ -20,7 +20,7 @@ class ProductDetailsScreen extends StatelessWidget {
           'Product Details',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        backgroundColor: const Color(0xFF6A5ACD),
+        backgroundColor: const Color(0xFF2E8B57),
         foregroundColor: Colors.white,
         elevation: 0,
       ),
@@ -270,7 +270,7 @@ class ProductDetailsScreen extends StatelessWidget {
                 );
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF6A5ACD),
+                backgroundColor: const Color(0xFF2E8B57),
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 15),
                 shape: RoundedRectangleBorder(
