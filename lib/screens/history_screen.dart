@@ -88,7 +88,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
           'Scan History',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        backgroundColor: const Color(0xFF6A5ACD),
+        backgroundColor: const Color(0xFF2E8B57),
         foregroundColor: Colors.white,
         elevation: 0,
         actions: [
@@ -182,10 +182,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
           });
         },
         backgroundColor: Colors.white,
-        selectedColor: const Color(0xFF6A5ACD).withOpacity(0.2),
-        checkmarkColor: const Color(0xFF6A5ACD),
+        selectedColor: const Color(0xFF2E8B57).withOpacity(0.2),
+        checkmarkColor: const Color(0xFF2E8B57),
         labelStyle: TextStyle(
-          color: isSelected ? const Color(0xFF6A5ACD) : Colors.grey.shade700,
+          color: isSelected ? const Color(0xFF2E8B57) : Colors.grey.shade700,
           fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
         ),
       ),
@@ -302,14 +302,14 @@ class _HistoryScreenState extends State<HistoryScreen> {
                               vertical: 4,
                             ),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF6A5ACD).withOpacity(0.1),
+                              color: const Color(0xFF2E8B57).withOpacity(0.1),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
                               '${item.calories} cal',
                               style: const TextStyle(
                                 fontSize: 12,
-                                color: Color(0xFF6A5ACD),
+                                color: Color(0xFF2E8B57),
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
