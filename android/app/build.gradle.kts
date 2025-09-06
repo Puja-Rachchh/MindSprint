@@ -4,11 +4,13 @@ plugins {
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
 }
+// Apply Google Services plugin for Firebase
+apply(plugin = "com.google.gms.google-services")
 
 android {
     namespace = "com.example.mindsprint"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    ndkVersion = flutter.ndkVersion 
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11

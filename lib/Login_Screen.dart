@@ -1,8 +1,19 @@
 import 'package:flutter/material.dart';
 import 'Signin_Screen.dart';
 import 'Dashboard_Screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatelessWidget {
+  Future<Map<String, String>> _getStoredUserData() async {
+    final prefs = await SharedPreferences.getInstance();
+    return {
+      'user_email': prefs.getString('user_email') ?? '',
+      'user_password': prefs.getString('user_password') ?? '',
+      'user_name': prefs.getString('user_name') ?? '',
+      'user_pet_name': prefs.getString('user_pet_name') ?? '',
+      'user_age': prefs.getString('user_age') ?? '',
+    };
+  }
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
@@ -54,11 +65,11 @@ class LoginScreen extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
                 // Validate login credentials
-                String storedEmail = SigninScreen.userData['user_email'] ?? '';
-                String storedPassword =
-                    SigninScreen.userData['user_password'] ?? '';
+                final storedData = await _getStoredUserData();
+                String storedEmail = storedData['user_email'] ?? '';
+                String storedPassword = storedData['user_password'] ?? '';
 
                 // Demo user credentials
                 const String demoEmail = 'test@gmail.com';

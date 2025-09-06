@@ -6,6 +6,8 @@ import 'dart:convert';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({Key? key}) : super(key: key);
@@ -14,23 +16,16 @@ class DashboardScreen extends StatefulWidget {
   State<DashboardScreen> createState() => _DashboardScreenState();
 }
 
-class _DashboardScreenState extends State<DashboardScreen>
-    with WidgetsBindingObserver {
-  // Bottom navigation state
+class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingObserver {
+  String? _dietInstructions;
   int _selectedIndex = 0;
-
-  // Scanner state with lifecycle management
   MobileScannerController? cameraController;
   Map<String, dynamic>? _productInfo;
   bool _isLoading = false;
   bool _isScannerActive = false;
   bool _isTorchOn = false;
-
-  // Image picker
   final ImagePicker _imagePicker = ImagePicker();
   File? _selectedImage;
-
-  // Nutritionix API credentials
   final String nutritionixAppId = '2f699f85';
   final String nutritionixApiKey = 'becba1a817e2897f16b967f7016bce6c';
 
@@ -38,6 +33,41 @@ class _DashboardScreenState extends State<DashboardScreen>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    fetchUserInstructions();
+  }
+
+  Future<void> fetchUserInstructions() async {
+    final prefs = await SharedPreferences.getInstance();
+    final email = prefs.getString('user_email') ?? '';
+    if (email.isEmpty) return;
+    final doc = await FirebaseFirestore.instance.collection('users').doc(email).get();
+    final data = doc.data();
+    if (data == null) return;
+    final allergy = data['allergic'] ?? '';
+    final disease = data['disease'] ?? '';
+    _dietInstructions = await getDietInstructions(allergy, disease);
+    if (mounted) setState(() {});
+  }
+
+  Future<String> getDietInstructions(String allergy, String disease) async {
+    final apiKey = 'AIzaSyAzP_m9mcHneMTTgeH4ArcG8ua6wte5lz0';
+    final url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=$apiKey';
+    final prompt = 'Give detailed dietary instructions for a person allergic to $allergy and suffering from $disease.';
+    final response = await http.post(
+      Uri.parse(url),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'contents': [
+          {'parts': [{'text': prompt}]}
+        ]
+      }),
+    );
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['candidates'][0]['content']['parts'][0]['text'];
+    } else {
+      throw Exception('Failed to get instructions');
+    }
   }
 
   @override
@@ -54,6 +84,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       _stopScanner();
     }
   }
+  // All duplicate fields and methods removed. Only one set remains above.
 
   void _onItemTapped(int index) {
     setState(() {
@@ -731,335 +762,20 @@ class _DashboardScreenState extends State<DashboardScreen>
     return SingleChildScrollView(
       child: Column(
         children: [
-          // Header Section
-          Container(
-            padding: const EdgeInsets.fromLTRB(20, 50, 20, 30),
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(25),
-                bottomRight: Radius.circular(25),
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Icon(Icons.menu, size: 24, color: Colors.black54),
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.grey[100],
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: const Icon(
-                        Icons.search,
-                        size: 20,
-                        color: Colors.black54,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 25),
-                const Text(
-                  "Let's Check Food",
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF2E8B57),
-                  ),
-                ),
-                const Text(
-                  "Nutrition & Calories",
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w500,
-                    color: Color(0xFF2E8B57),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  "Select food type to see calories",
-                  style: TextStyle(fontSize: 14, color: Colors.black54),
-                ),
-                const SizedBox(height: 25),
-
-                // Food Category Icons
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    _buildCategoryIcon(Icons.local_dining, "Fast Food", false),
-                    _buildCategoryIcon(Icons.restaurant, "Vegetables", true),
-                    _buildCategoryIcon(Icons.local_bar, "Drinks", false),
-                    _buildCategoryIcon(
-                      Icons.shopping_basket,
-                      "Groceries",
-                      false,
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-
-          // Food Cards Section
-          Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildFoodCard(
-                        "Vegetables &\nBeans",
-                        "43 Calories",
-                        Colors.green[100]!,
-                        Icons.eco,
-                        Colors.green,
-                      ),
-                    ),
-                    const SizedBox(width: 15),
-                    Expanded(
-                      child: _buildFoodCard(
-                        "Vegetables &\nMeat",
-                        "43 Calories",
-                        Colors.orange[100]!,
-                        Icons.restaurant_menu,
-                        Colors.orange,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-
-                // Balanced Diet Card
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.1),
-                        spreadRadius: 0,
-                        blurRadius: 20,
-                        offset: const Offset(0, 5),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              "Balanced Diet",
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black87,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            const Text(
-                              "Stay healthy and young by\ntaking a balanced diet!",
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: Colors.black54,
-                                height: 1.4,
-                              ),
-                            ),
-                            const SizedBox(height: 15),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 20,
-                                vertical: 10,
-                              ),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF2E8B57),
-                                borderRadius: BorderRadius.circular(25),
-                              ),
-                              child: const Text(
-                                "Learn More",
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 15),
-                      Container(
-                        width: 80,
-                        height: 80,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(15),
-                          image: const DecorationImage(
-                            image: NetworkImage(
-                              'https://images.unsplash.com/photo-1490645935967-10de6ba17061?w=150&h=150&fit=crop',
-                            ),
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 30),
-
-                // Scan Button
-                Container(
-                  width: double.infinity,
-                  height: 60,
-                  child: ElevatedButton.icon(
-                    onPressed: _startScanner,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF2E8B57),
-                      foregroundColor: Colors.white,
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                    ),
-                    icon: const Icon(Icons.qr_code_scanner, size: 24),
-                    label: const Text(
-                      "Scan Food Barcode",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
-
-                // Upload Image Button
-                const SizedBox(height: 15),
-                Container(
-                  width: double.infinity,
-                  height: 60,
-                  child: ElevatedButton.icon(
-                    onPressed: _selectImageFromGallery,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: const Color(0xFF2E8B57),
-                      elevation: 0,
-                      side: const BorderSide(
-                        color: Color(0xFF2E8B57),
-                        width: 2,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
-                    ),
-                    icon: const Icon(Icons.upload_file, size: 24),
-                    label: const Text(
-                      "Upload Food Image",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // Selected Image Display
-          if (_selectedImage != null) ...[
-            Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.1),
-                      spreadRadius: 0,
-                      blurRadius: 15,
-                      offset: const Offset(0, 5),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Selected Image:',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
-                      ),
-                    ),
-                    const SizedBox(height: 15),
-                    Container(
-                      height: 200,
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(15),
-                        image: DecorationImage(
-                          image: FileImage(_selectedImage!),
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 15),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: ElevatedButton.icon(
-                            onPressed: _selectImageFromGallery,
-                            icon: const Icon(Icons.refresh, size: 18),
-                            label: const Text('Change'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF2E8B57),
-                              foregroundColor: Colors.white,
-                              elevation: 0,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(15),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: ElevatedButton.icon(
-                            onPressed: () {
-                              setState(() {
-                                _selectedImage = null;
-                              });
-                            },
-                            icon: const Icon(Icons.delete, size: 18),
-                            label: const Text('Remove'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.red[400],
-                              foregroundColor: Colors.white,
-                              elevation: 0,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(15),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
+          // Gemini Instructions Card
+          if (_dietInstructions != null)
+            Card(
+              margin: const EdgeInsets.all(16),
+              color: Colors.lightBlue[50],
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Text(
+                  _dietInstructions!,
+                  style: const TextStyle(fontSize: 18),
                 ),
               ),
             ),
-          ],
-
+          // ...existing dashboard UI (add your widgets here, e.g. header, food cards, etc.)...
           // Loading Indicator
           if (_isLoading) ...[
             const SizedBox(height: 20),

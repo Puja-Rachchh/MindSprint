@@ -1,6 +1,33 @@
 import 'package:flutter/material.dart';
 import 'Signin_Screen.dart';
 import 'Login_Screen.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert'; 
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+  // Gemini API call for dietary instructions
+ 
+  Future<String> getDietInstructions(String allergy, String disease) async {
+    final apiKey = 'AIzaSyAzP_m9mcHneMTTgeH4ArcG8ua6wte5lz0';
+    final url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=$apiKey';
+    final prompt = 'Give detailed dietary instructions for a person allergic to $allergy and suffering from $disease.';
+    final response = await http.post(
+      Uri.parse(url),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'contents': [
+          {'parts': [{'text': prompt}]}
+        ]
+      }),
+    );
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data['candidates'][0]['content']['parts'][0]['text'];
+    } else {
+      throw Exception('Failed to get instructions');
+    }
+  }
+
 
 class DetailScreen extends StatefulWidget {
   DetailScreen({Key? key}) : super(key: key);
@@ -26,6 +53,33 @@ class _DetailScreenState extends State<DetailScreen> {
     SigninScreen.userData['user_disease'] = diseaseController.text;
     SigninScreen.userData['user_description'] = descriptionController.text;
     SigninScreen.userData['user_gender'] = _selectedGender;
+
+    // Save to SharedPreferences
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('user_height', heightController.text);
+    await prefs.setString('user_weight', weightController.text);
+    await prefs.setString('user_allergic', allergicController.text);
+    await prefs.setString('user_disease', diseaseController.text);
+    await prefs.setString('user_description', descriptionController.text);
+    await prefs.setString('user_gender', _selectedGender);
+
+    // Save allergy and disease to Firebase
+    final email = prefs.getString('user_email') ?? '';
+    if (email.isNotEmpty) {
+      try {
+        await FirebaseFirestore.instance.collection('users').doc(email).set({
+          'allergic': allergicController.text,
+          'disease': diseaseController.text,
+        }, SetOptions(merge: true));
+      } catch (e) {
+        // Show error if Firestore write fails
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Firebase error: ${e.toString()}')),
+          );
+        }
+      }
+    }
   }
 
   @override

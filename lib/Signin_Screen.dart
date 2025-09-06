@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'Login_Screen.dart';
 import 'Detail_Screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SigninScreen extends StatelessWidget {
   final TextEditingController nameController = TextEditingController();
@@ -17,12 +18,19 @@ class SigninScreen extends StatelessWidget {
   static Map<String, String> userData = {};
 
   Future<void> _saveUserData() async {
-    // Store data in memory instead of SharedPreferences
     userData['user_name'] = nameController.text;
     userData['user_pet_name'] = petNameController.text;
     userData['user_email'] = emailController.text;
     userData['user_password'] = passwordController.text;
     userData['user_age'] = ageController.text;
+
+    // Save to SharedPreferences
+    final prefs = await SharedPreferences.getInstance();
+  await prefs.setString('user_email', emailController.text);
+    await prefs.setString('user_password', passwordController.text);
+    await prefs.setString('user_name', nameController.text);
+    await prefs.setString('user_pet_name', petNameController.text);
+    await prefs.setString('user_age', ageController.text);
   }
 
   @override
