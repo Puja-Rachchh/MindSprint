@@ -1,20 +1,16 @@
 import 'package:flutter/material.dart';
 import 'Signin_Screen.dart';
-import 'package:mobile_scanner/mobile_scanner.dart' as mobile_scanner;
+import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
-
 import 'screens/diet_plan_screen.dart';
 import 'screens/help_screen.dart';
 import 'screens/history_screen.dart';
 import 'screens/product_details_screen.dart';
 import 'screens/settings_screen.dart';
-
-import 'package:google_mlkit_barcode_scanning/google_mlkit_barcode_scanning.dart';
-
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({Key? key}) : super(key: key);
@@ -29,17 +25,15 @@ class _DashboardScreenState extends State<DashboardScreen>
   int _selectedIndex = 0;
 
   // Scanner state with lifecycle management
-  mobile_scanner.MobileScannerController? cameraController;
+  MobileScannerController? cameraController;
   Map<String, dynamic>? _productInfo;
   bool _isLoading = false;
   bool _isScannerActive = false;
   bool _isTorchOn = false;
 
-
+  // Image picker
   final ImagePicker _imagePicker = ImagePicker();
   File? _selectedImage;
-  final BarcodeScanner _barcodeScanner = BarcodeScanner();
-  String? _lastScannedBarcode;
 
   // Nutritionix API credentials
   final String nutritionixAppId = '2f699f85';
@@ -90,10 +84,10 @@ class _DashboardScreenState extends State<DashboardScreen>
   void _initializeCamera() {
     if (cameraController != null) return;
 
-    cameraController = mobile_scanner.MobileScannerController(
-      detectionSpeed: mobile_scanner.DetectionSpeed.noDuplicates,
-      facing: mobile_scanner.CameraFacing.back,
-      formats: [mobile_scanner.BarcodeFormat.ean13],
+    cameraController = MobileScannerController(
+      detectionSpeed: DetectionSpeed.noDuplicates,
+      facing: CameraFacing.back,
+      formats: [BarcodeFormat.ean13],
       returnImage: false,
       torchEnabled: _isTorchOn,
     );
@@ -111,66 +105,6 @@ class _DashboardScreenState extends State<DashboardScreen>
     cameraController?.stop();
     cameraController?.dispose();
     cameraController = null;
-  }
-
-  Future<void> _scanImage(File imageFile) async {
-    if (!mounted) return;
-    
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      final inputImage = InputImage.fromFilePath(imageFile.path);
-      final List<Barcode> barcodes = await _barcodeScanner.processImage(inputImage);
-      
-      if (barcodes.isNotEmpty) {
-        for (final barcode in barcodes) {
-          debugPrint('Detected barcode from image: ${barcode.rawValue}');
-          if (barcode.rawValue != null && barcode.rawValue!.length == 13) {
-            setState(() {
-              _lastScannedBarcode = barcode.rawValue;
-            });
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Barcode detected: ${barcode.rawValue}'),
-                duration: const Duration(seconds: 2),
-              ),
-            );
-            await _fetchNutritionalInfo(barcode.rawValue!);
-            return;
-          }
-        }
-        _showError('No valid barcode found in image');
-      } else {
-        _showError('No barcode detected in image');
-      }
-    } catch (e) {
-      debugPrint('Error scanning image: $e');
-      _showError('Error scanning image: $e');
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
-    }
-  }
-
-  Future<void> _pickAndScanImage() async {
-    try {
-      final XFile? pickedFile = await _imagePicker.pickImage(
-        source: ImageSource.gallery,
-        imageQuality: 100,
-      );
-
-      if (pickedFile != null) {
-        setState(() {
-          _selectedImage = File(pickedFile.path);
-        });
-        await _scanImage(_selectedImage!);
-      }
-    } catch (e) {
-      _showError('Error picking image: $e');
-    }
   }
 
   Future<void> _startScanner() async {
@@ -218,10 +152,10 @@ class _DashboardScreenState extends State<DashboardScreen>
                       child: Stack(
                         children: [
                           if (_isScannerActive && cameraController != null)
-                            mobile_scanner.MobileScanner(
+                            MobileScanner(
                               controller: cameraController!,
                               onDetect: (capture) {
-                                final List<mobile_scanner.Barcode> barcodes = capture.barcodes;
+                                final List<Barcode> barcodes = capture.barcodes;
                                 for (final barcode in barcodes) {
                                   debugPrint(
                                     'Detected barcode: ${barcode.rawValue}',
@@ -229,17 +163,12 @@ class _DashboardScreenState extends State<DashboardScreen>
                                   if (barcode.rawValue != null &&
                                       barcode.rawValue!.length == 13) {
                                     if (!mounted) return;
-                                    setState(() {
-                                      _lastScannedBarcode = barcode.rawValue;
-                                    });
                                     ScaffoldMessenger.of(context).showSnackBar(
-
-
-                                      SnackBar(
-                                        content: Text('Barcode detected: ${barcode.rawValue}'),
-                                        duration: const Duration(seconds: 2),
-
-
+                                      const SnackBar(
+                                        content: Text(
+                                          'Barcode detected! Fetching information...',
+                                        ),
+                                        duration: Duration(seconds: 1),
                                       ),
                                     );
                                     Navigator.pop(context);
@@ -300,7 +229,7 @@ class _DashboardScreenState extends State<DashboardScreen>
     }
   }
 
-  // Image selection and scanning method
+  // Image selection method
   Future<void> _selectImageFromGallery() async {
     try {
       final XFile? image = await _imagePicker.pickImage(
@@ -309,21 +238,16 @@ class _DashboardScreenState extends State<DashboardScreen>
       if (image != null && mounted) {
         setState(() {
           _selectedImage = File(image.path);
-          _isLoading = true;
         });
-        
-        await _scanImage(_selectedImage!);
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Image selected successfully!')));
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Error selecting image: $e')));
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Error selecting image: $e')));
       }
     }
   }
@@ -490,7 +414,6 @@ class _DashboardScreenState extends State<DashboardScreen>
       backgroundColor: Colors.transparent,
       builder: (BuildContext context) {
         return Container(
-
           height: MediaQuery.of(context).size.height * 0.9,
           decoration: const BoxDecoration(
             color: Color(0xFF2E8B57),
@@ -509,33 +432,6 @@ class _DashboardScreenState extends State<DashboardScreen>
                     IconButton(
                       onPressed: () => Navigator.of(context).pop(),
                       icon: const Icon(Icons.arrow_back, color: Colors.white),
-
-          padding: const EdgeInsets.all(20.0),
-          height: MediaQuery.of(context).size.height * 0.8,
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  productName,
-                  style: Theme.of(context).textTheme.headlineSmall,
-                ),
-                if (brand.isNotEmpty)
-                  Text(
-                    brand,
-                    style: Theme.of(
-                      context,
-                    ).textTheme.titleMedium?.copyWith(color: Colors.grey[600]),
-                  ),
-                const SizedBox(height: 20),
-                if (servingSize.isNotEmpty)
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[200],
-                      borderRadius: BorderRadius.circular(8),
-
                     ),
                     const Spacer(),
                     IconButton(
@@ -544,51 +440,22 @@ class _DashboardScreenState extends State<DashboardScreen>
                     ),
                   ],
                 ),
-
               ),
 
-      
-
-                const SizedBox(height: 10),
-                _buildNutrientRow('Calories', nutriments['energy-kcal_100g']),
-                _buildNutrientRow('Protein', nutriments['proteins_100g']),
-                _buildNutrientRow(
-                  'Total Carbohydrates',
-                  nutriments['carbohydrates_100g'],
-                ),
-                _buildNutrientRow('Total Fat', nutriments['fat_100g']),
-                _buildNutrientRow('Dietary Fiber', nutriments['fiber_100g']),
-                _buildNutrientRow('Sugars', nutriments['sugars_100g']),
-                _buildNutrientRow('Sodium', nutriments['sodium_100g']),
-                _buildNutrientRow(
-                  'Cholesterol',
-                  nutriments['cholesterol_100g'],
-                ),
-                if (ingredients.isNotEmpty) ...[
-                  const SizedBox(height: 20),
-                  const Text(
-                    'Ingredients',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(ingredients, style: const TextStyle(fontSize: 14)),
-                ],
-                if (allergens.isNotEmpty) ...[
-                  const SizedBox(height: 20),
-                  const Text(
-                    'Allergen Warning',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.red,
-
+              // Content Container
+              Expanded(
+                child: Container(
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(25),
+                      topRight: Radius.circular(25),
                     ),
                   ),
                   child: SingleChildScrollView(
                     padding: const EdgeInsets.all(25.0),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-
                       children: [
                         // Food Image and Info
                         Center(
@@ -814,19 +681,6 @@ class _DashboardScreenState extends State<DashboardScreen>
 
                         const SizedBox(height: 20),
                       ],
-=======
-                      children: allergens
-                          .map(
-                            (allergen) => Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 2),
-                              child: Text(
-                                '• $allergen',
-                                style: const TextStyle(color: Colors.red),
-                              ),
-                            ),
-                          )
-                          .toList(),
-
                     ),
                   ),
                 ),
@@ -837,7 +691,6 @@ class _DashboardScreenState extends State<DashboardScreen>
       },
     );
   }
-
 
   Widget _buildNutritionCard(String value, String label) {
     return Container(
@@ -866,28 +719,6 @@ class _DashboardScreenState extends State<DashboardScreen>
             ),
           ),
           const SizedBox(height: 5),
-
-  Widget _buildNutrientRow(String label, dynamic value) {
-    String displayValue;
-    if (value == null) {
-      displayValue = 'N/A';
-    } else {
-      String unit = 'g';
-      if (label == 'Calories') {
-        unit = 'kcal';
-      } else if (label == 'Sodium' || label == 'Cholesterol') {
-        unit = 'mg';
-      }
-      displayValue = '${value.toStringAsFixed(1)}$unit';
-    }
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label, style: const TextStyle(fontSize: 16)),
-
           Text(
             label,
             style: TextStyle(
@@ -905,69 +736,7 @@ class _DashboardScreenState extends State<DashboardScreen>
     return SingleChildScrollView(
       child: Column(
         children: [
-
           // Header Section
-
-          // Welcome Header
-          const Text(
-            'Welcome to MindSprint! 👋',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF2D3748),
-            ),
-          ),
-          const SizedBox(height: 10),
-          const Text(
-            'Ready to scan and eat healthy?',
-            style: TextStyle(fontSize: 16, color: Color(0xFF718096)),
-          ),
-          const SizedBox(height: 20),
-
-          // Last Scanned Barcode
-          if (_lastScannedBarcode != null) Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(15),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(15),
-              border: Border.all(color: const Color(0xFFE2E8F0)),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.1),
-                  spreadRadius: 0,
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Last Scanned Barcode:',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Color(0xFF718096),
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  _lastScannedBarcode!,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    color: Color(0xFF2D3748),
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 30),
-
-          // Main Scan Button
-
           Container(
             padding: const EdgeInsets.fromLTRB(20, 50, 20, 30),
             decoration: const BoxDecoration(
@@ -2612,7 +2381,7 @@ class _DashboardScreenState extends State<DashboardScreen>
     final TextEditingController diseaseController = TextEditingController();
     final TextEditingController descriptionController = TextEditingController();
 
-    String? selectedGender = SigninScreen.userData['gender'];
+    String selectedGender = SigninScreen.userData['user_gender'] ?? 'Male';
 
     // Populate controllers with existing data
     nameController.text = SigninScreen.userData['user_name'] ?? '';
@@ -2660,17 +2429,6 @@ class _DashboardScreenState extends State<DashboardScreen>
                         labelText: 'Name',
                         border: OutlineInputBorder(),
                       ),
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: TextEditingController(
-                        text: selectedGender ?? "Not set",
-                      ),
-                      decoration: const InputDecoration(
-                        labelText: 'Gender',
-                        border: OutlineInputBorder(),
-                      ),
-                      enabled: false,
                     ),
                     const SizedBox(height: 12),
                     TextField(
@@ -2737,9 +2495,29 @@ class _DashboardScreenState extends State<DashboardScreen>
                       keyboardType: TextInputType.number,
                     ),
                     const SizedBox(height: 12),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0),
-                      // Removed duplicate gender display from Health Information section
+                    StatefulBuilder(
+                      builder: (context, setStateLocal) {
+                        return DropdownButtonFormField<String>(
+                          decoration: const InputDecoration(
+                            labelText: 'Gender',
+                            border: OutlineInputBorder(),
+                          ),
+                          value: selectedGender,
+                          items: ['Male', 'Female', 'Other'].map((
+                            String value,
+                          ) {
+                            return DropdownMenuItem<String>(
+                              value: value,
+                              child: Text(value),
+                            );
+                          }).toList(),
+                          onChanged: (String? newValue) {
+                            setStateLocal(() {
+                              selectedGender = newValue!;
+                            });
+                          },
+                        );
+                      },
                     ),
                     const SizedBox(height: 12),
                     TextField(
@@ -2782,7 +2560,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                 SigninScreen.userData['user_age'] = ageController.text;
                 SigninScreen.userData['user_height'] = heightController.text;
                 SigninScreen.userData['user_weight'] = weightController.text;
-                SigninScreen.userData['user_gender'] = selectedGender ?? '';
+                SigninScreen.userData['user_gender'] = selectedGender;
                 SigninScreen.userData['user_allergic'] =
                     allergicController.text;
                 SigninScreen.userData['user_disease'] = diseaseController.text;
