@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'Signin_Screen.dart';
-import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:mobile_scanner/mobile_scanner.dart' as mobile_scanner;
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'package:google_mlkit_barcode_scanning/google_mlkit_barcode_scanning.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({Key? key}) : super(key: key);
@@ -19,15 +20,17 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
   int _selectedIndex = 0;
   
   // Scanner state with lifecycle management
-  MobileScannerController? cameraController;
+  mobile_scanner.MobileScannerController? cameraController;
   Map<String, dynamic>? _productInfo;
   bool _isLoading = false;
   bool _isScannerActive = false;
   bool _isTorchOn = false;
   
-  // Image picker
+  // Image picker and scanner
   final ImagePicker _imagePicker = ImagePicker();
   File? _selectedImage;
+  final BarcodeScanner _barcodeScanner = BarcodeScanner();
+  String? _lastScannedBarcode;
 
   // Nutritionix API credentials
   final String nutritionixAppId = '2f699f85';
@@ -77,10 +80,10 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
   void _initializeCamera() {
     if (cameraController != null) return;
 
-    cameraController = MobileScannerController(
-      detectionSpeed: DetectionSpeed.noDuplicates,
-      facing: CameraFacing.back,
-      formats: [BarcodeFormat.ean13],
+    cameraController = mobile_scanner.MobileScannerController(
+      detectionSpeed: mobile_scanner.DetectionSpeed.noDuplicates,
+      facing: mobile_scanner.CameraFacing.back,
+      formats: [mobile_scanner.BarcodeFormat.ean13],
       returnImage: false,
       torchEnabled: _isTorchOn,
     );
@@ -98,6 +101,66 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
     cameraController?.stop();
     cameraController?.dispose();
     cameraController = null;
+  }
+
+  Future<void> _scanImage(File imageFile) async {
+    if (!mounted) return;
+    
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final inputImage = InputImage.fromFilePath(imageFile.path);
+      final List<Barcode> barcodes = await _barcodeScanner.processImage(inputImage);
+      
+      if (barcodes.isNotEmpty) {
+        for (final barcode in barcodes) {
+          debugPrint('Detected barcode from image: ${barcode.rawValue}');
+          if (barcode.rawValue != null && barcode.rawValue!.length == 13) {
+            setState(() {
+              _lastScannedBarcode = barcode.rawValue;
+            });
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Barcode detected: ${barcode.rawValue}'),
+                duration: const Duration(seconds: 2),
+              ),
+            );
+            await _fetchNutritionalInfo(barcode.rawValue!);
+            return;
+          }
+        }
+        _showError('No valid barcode found in image');
+      } else {
+        _showError('No barcode detected in image');
+      }
+    } catch (e) {
+      debugPrint('Error scanning image: $e');
+      _showError('Error scanning image: $e');
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _pickAndScanImage() async {
+    try {
+      final XFile? pickedFile = await _imagePicker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 100,
+      );
+
+      if (pickedFile != null) {
+        setState(() {
+          _selectedImage = File(pickedFile.path);
+        });
+        await _scanImage(_selectedImage!);
+      }
+    } catch (e) {
+      _showError('Error picking image: $e');
+    }
   }
 
   Future<void> _startScanner() async {
@@ -145,19 +208,22 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
                       child: Stack(
                         children: [
                           if (_isScannerActive && cameraController != null)
-                            MobileScanner(
+                            mobile_scanner.MobileScanner(
                               controller: cameraController!,
                               onDetect: (capture) {
-                                final List<Barcode> barcodes = capture.barcodes;
+                                final List<mobile_scanner.Barcode> barcodes = capture.barcodes;
                                 for (final barcode in barcodes) {
                                   debugPrint('Detected barcode: ${barcode.rawValue}');
                                   if (barcode.rawValue != null && 
                                       barcode.rawValue!.length == 13) {
                                     if (!mounted) return;
+                                    setState(() {
+                                      _lastScannedBarcode = barcode.rawValue;
+                                    });
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text('Barcode detected! Fetching information...'),
-                                        duration: Duration(seconds: 1),
+                                      SnackBar(
+                                        content: Text('Barcode detected: ${barcode.rawValue}'),
+                                        duration: const Duration(seconds: 2),
                                       ),
                                     );
                                     Navigator.pop(context);
@@ -218,7 +284,7 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
     }
   }
 
-  // Image selection method
+  // Image selection and scanning method
   Future<void> _selectImageFromGallery() async {
     try {
       final XFile? image = await _imagePicker.pickImage(
@@ -227,16 +293,21 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
       if (image != null && mounted) {
         setState(() {
           _selectedImage = File(image.path);
+          _isLoading = true;
         });
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Image selected successfully!')));
+        
+        await _scanImage(_selectedImage!);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error selecting image: $e')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Error selecting image: $e')));
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
       }
     }
   }
@@ -553,6 +624,48 @@ class _DashboardScreenState extends State<DashboardScreen> with WidgetsBindingOb
           const Text(
             'Ready to scan and eat healthy?',
             style: TextStyle(fontSize: 16, color: Color(0xFF718096)),
+          ),
+          const SizedBox(height: 20),
+
+          // Last Scanned Barcode
+          if (_lastScannedBarcode != null) Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(15),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(15),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.1),
+                  spreadRadius: 0,
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Last Scanned Barcode:',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Color(0xFF718096),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  _lastScannedBarcode!,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    color: Color(0xFF2D3748),
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 30),
 
