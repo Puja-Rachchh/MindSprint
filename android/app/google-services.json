@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "603568524649",
+    "project_id": "mindsprint-2aa78",
+    "storage_bucket": "mindsprint-2aa78.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:603568524649:android:072cba5489baf1838881f8",
+        "android_client_info": {
+          "package_name": "com.example.mindsprint"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA8FfDouKfzNyG2jaNJCWggTIg7WzmXeIM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
