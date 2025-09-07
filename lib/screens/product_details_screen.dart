@@ -4,11 +4,13 @@ import 'allergen_warning_screen.dart';
 class ProductDetailsScreen extends StatelessWidget {
   final String productName;
   final String barcode;
+  final String? photoUrl;
 
   const ProductDetailsScreen({
     super.key,
     required this.productName,
     required this.barcode,
+    this.photoUrl,
   });
 
   @override
@@ -65,16 +67,44 @@ class ProductDetailsScreen extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Container(
-            width: 100,
-            height: 100,
-            decoration: BoxDecoration(
-              color: Colors.grey.shade200,
-              borderRadius: BorderRadius.circular(10),
+          if (photoUrl != null && photoUrl!.isNotEmpty)
+            Container(
+              margin: const EdgeInsets.only(bottom: 15),
+              width: 120,
+              height: 120,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                color: Colors.grey[200],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: photoUrl!.startsWith('assets/')
+                    ? Image.asset(
+                        photoUrl!,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            color: Colors.grey[200],
+                            child: const Center(
+                              child: Icon(Icons.broken_image, size: 40, color: Colors.grey),
+                            ),
+                          );
+                        },
+                      )
+                    : Image.network(
+                        photoUrl!,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            color: Colors.grey[200],
+                            child: const Center(
+                              child: Icon(Icons.broken_image, size: 40, color: Colors.grey),
+                            ),
+                          );
+                        },
+                      ),
+              ),
             ),
-            child: const Icon(Icons.image, size: 50, color: Colors.grey),
-          ),
-          const SizedBox(height: 15),
           Text(
             productName,
             style: const TextStyle(
@@ -271,6 +301,7 @@ class ProductDetailsScreen extends StatelessWidget {
                     builder: (context) => AllergenWarningScreen(
                       productName: productName,
                       allergens: const ['None detected'],
+                      photoUrl: photoUrl,
                     ),
                   ),
                 );

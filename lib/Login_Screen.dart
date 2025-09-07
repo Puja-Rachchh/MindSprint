@@ -124,70 +124,7 @@ class LoginScreen extends StatelessWidget {
             ),
             const SizedBox(height: 24),
 
-            // Demo User Section
-            Container(
-              padding: const EdgeInsets.all(16.0),
-              decoration: BoxDecoration(
-                color: Colors.blue.shade50,
-                borderRadius: BorderRadius.circular(8.0),
-                border: Border.all(color: Colors.blue.shade200),
-              ),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      Icon(Icons.info_outline, color: Colors.blue.shade600),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Demo User Credentials',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blue.shade700,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Email: test@gmail.com',
-                              style: TextStyle(
-                                color: Colors.blue.shade700,
-                                fontFamily: 'monospace',
-                              ),
-                            ),
-                            Text(
-                              'Password: 123',
-                              style: TextStyle(
-                                color: Colors.blue.shade700,
-                                fontFamily: 'monospace',
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      ElevatedButton(
-                        onPressed: () {
-                          emailController.text = 'test@gmail.com';
-                          passwordController.text = '123';
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue.shade600,
-                          foregroundColor: Colors.white,
-                        ),
-                        child: const Text('Fill Demo'),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
+            
           ],
         ),
       ),

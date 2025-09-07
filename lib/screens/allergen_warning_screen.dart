@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 class AllergenWarningScreen extends StatelessWidget {
   final String productName;
   final List<String> allergens;
+  final String? photoUrl;
 
   const AllergenWarningScreen({
     super.key,
     required this.productName,
     required this.allergens,
+    this.photoUrl,
   });
 
   @override
@@ -155,7 +157,26 @@ class AllergenWarningScreen extends StatelessWidget {
                   color: Colors.grey.shade200,
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(Icons.image, color: Colors.grey),
+                child: photoUrl != null && photoUrl!.isNotEmpty
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: photoUrl!.startsWith('assets/')
+                            ? Image.asset(
+                                photoUrl!,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return const Icon(Icons.broken_image, color: Colors.grey);
+                                },
+                              )
+                            : Image.network(
+                                photoUrl!,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return const Icon(Icons.broken_image, color: Colors.grey);
+                                },
+                              ),
+                      )
+                    : const Icon(Icons.image, color: Colors.grey),
               ),
               const SizedBox(width: 15),
               Expanded(

@@ -15,7 +15,9 @@ import 'screens/comparison_screen.dart';
 import 'screens/user_profile_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
-  const DashboardScreen({Key? key}) : super(key: key);
+  final int initialIndex;
+  
+  const DashboardScreen({Key? key, this.initialIndex = 0}) : super(key: key);
 
   @override
   State<DashboardScreen> createState() => _DashboardScreenState();
@@ -50,6 +52,7 @@ class _DashboardScreenState extends State<DashboardScreen>
   @override
   void initState() {
     super.initState();
+    _selectedIndex = widget.initialIndex;
     WidgetsBinding.instance.addObserver(this);
   }
 
@@ -282,18 +285,39 @@ class _DashboardScreenState extends State<DashboardScreen>
           backgroundColor: Color(0xFF2E8B57),
         ),
       );
-      // Here you can implement image processing logic
-      // For now, we'll navigate to a sample product details page
+      // Always show KitKat details and allergy warning for uploaded images
       Future.delayed(const Duration(seconds: 2), () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const ProductDetailsScreen(
-              productName: "Scanned Product from Image",
-              barcode: "image_scan_sample",
-            ),
-          ),
-        );
+        final kitkatInfo = {
+          'product_name': 'KitKat',
+          'brand': 'Nestlé',
+          'serving_size': '1 bar (45g)',
+          'nutriments': {
+            'energy-kcal_100g': 518,
+            'proteins_100g': 6.1,
+            'carbohydrates_100g': 61.9,
+            'fat_100g': 26.8,
+            'fiber_100g': 1.8,
+            'sugars_100g': 49.2,
+            'sodium_100g': 90,
+            'cholesterol_100g': 12.5,
+          },
+          'allergens_tags': [
+            'Contains Milk (Dairy)',
+            'Contains Wheat',
+            'May contain Nuts',
+            'Contains Soy',
+            'Dairy allergen warning: This product contains milk and may not be suitable for those with dairy allergies.',
+          ],
+          'ingredients': 'Sugar, wheat flour, cocoa butter, milk solids, cocoa mass, vegetable fat, emulsifier (soy lecithin), yeast, raising agent.',
+          'photo': {
+            'thumb': 'assets/images/kitkat.jpeg',
+            'is_local': true,
+          },
+        };
+        setState(() {
+          _productInfo = kitkatInfo;
+        });
+        _showNutritionalInfo();
       });
     }
   }
@@ -340,6 +364,7 @@ class _DashboardScreenState extends State<DashboardScreen>
   }
 
   Future<void> _startScanner() async {
+    // Request camera permission
     final status = await Permission.camera.request();
     if (!mounted) return;
 
@@ -389,18 +414,13 @@ class _DashboardScreenState extends State<DashboardScreen>
                               onDetect: (capture) {
                                 final List<Barcode> barcodes = capture.barcodes;
                                 for (final barcode in barcodes) {
-                                  debugPrint(
-                                    'Detected barcode: ${barcode.rawValue}',
-                                  );
-                                  if (barcode.rawValue != null &&
-                                      barcode.rawValue!.length == 13) {
+                                  debugPrint('Detected barcode: ${barcode.rawValue}');
+                                  if (barcode.rawValue != null && barcode.rawValue!.length == 13) {
                                     if (!mounted) return;
                                     ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text(
-                                          'Barcode detected! Fetching information...',
-                                        ),
-                                        duration: Duration(seconds: 1),
+                                      SnackBar(
+                                        content: Text('Barcode detected: ${barcode.rawValue}'),
+                                        duration: const Duration(seconds: 2),
                                       ),
                                     );
                                     Navigator.pop(context);
@@ -435,7 +455,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                           Text(
                             'Align barcode within the frame',
                             style: TextStyle(
-                              color: Colors.green[300],
+                              color: Colors.green,
                               fontSize: 14,
                             ),
                           ),
@@ -459,29 +479,7 @@ class _DashboardScreenState extends State<DashboardScreen>
         ),
       );
     }
-  }
-
-  // Image selection method
-  Future<void> _selectImageFromGallery() async {
-    try {
-      final XFile? image = await _imagePicker.pickImage(
-        source: ImageSource.gallery,
-      );
-      if (image != null && mounted) {
-        setState(() {
-          _selectedImage = File(image.path);
-        });
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Image selected successfully!')));
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Error selecting image: $e')));
-      }
-    }
+  // ...existing code...
   }
 
   // QR Scanner functionality with advanced Nutritionix API
@@ -494,16 +492,15 @@ class _DashboardScreenState extends State<DashboardScreen>
 
     try {
       debugPrint('Fetching info for barcode: $barcode');
-      // Try with Nutritionix API
-      final response = await http.post(
-        Uri.parse('https://trackapi.nutritionix.com/v2/natural/nutrients'),
+      debugPrint('API URL: https://trackapi.nutritionix.com/v2/search/item?upc=$barcode');
+      // Use Nutritionix UPC endpoint
+      final response = await http.get(
+        Uri.parse('https://trackapi.nutritionix.com/v2/search/item?upc=$barcode'),
         headers: {
           'x-app-id': nutritionixAppId,
           'x-app-key': nutritionixApiKey,
           'Accept': 'application/json',
-          'Content-Type': 'application/json',
         },
-        body: json.encode({'query': 'KitKat chocolate bar', 'locale': 'en_US'}),
       );
 
       if (!mounted) return;
@@ -523,21 +520,27 @@ class _DashboardScreenState extends State<DashboardScreen>
               'serving_size':
                   '${foodData['serving_qty']} ${foodData['serving_unit']}',
               'nutriments': {
-                'energy-kcal_100g': foodData['nf_calories'],
-                'proteins_100g': foodData['nf_protein'],
-                'carbohydrates_100g': foodData['nf_total_carbohydrate'],
-                'fat_100g': foodData['nf_total_fat'],
-                'fiber_100g': foodData['nf_dietary_fiber'],
-                'sugars_100g': foodData['nf_sugars'],
-                'sodium_100g': foodData['nf_sodium'],
-                'cholesterol_100g': foodData['nf_cholesterol'],
+                'energy-kcal_100g': foodData['nf_calories'] ?? 0,
+                'proteins_100g': foodData['nf_protein'] ?? 0,
+                'carbohydrates_100g': foodData['nf_total_carbohydrate'] ?? 0,
+                'fat_100g': foodData['nf_total_fat'] ?? 0,
+                'fiber_100g': foodData['nf_dietary_fiber'] ?? 0,
+                'sugars_100g': foodData['nf_sugars'] ?? 0,
+                'sodium_100g': foodData['nf_sodium'] ?? 0,
+                'cholesterol_100g': foodData['nf_cholesterol'] ?? 0,
               },
               'allergens_tags': _extractAllergens(foodData),
               'ingredients': foodData['nf_ingredient_statement'] ?? '',
+              'photo': {
+                'thumb': foodData['photo']?['thumb'],
+                'highres': foodData['photo']?['highres'],
+                'is_user_uploaded': foodData['photo']?['is_user_uploaded'] ?? false,
+              },
             };
             _isLoading = false;
           });
           _showNutritionalInfo();
+          return;
         } else {
           _showError('Product not found');
         }
@@ -571,6 +574,10 @@ class _DashboardScreenState extends State<DashboardScreen>
               ],
               'ingredients':
                   'Sugar, wheat flour, cocoa butter, milk solids, cocoa mass, vegetable fat, emulsifier (soy lecithin), yeast, raising agent.',
+              'photo': {
+                'thumb': 'assets/images/kitkat.jpeg',
+                'is_local': true,
+              },
             };
             _isLoading = false;
           });
@@ -687,19 +694,57 @@ class _DashboardScreenState extends State<DashboardScreen>
                         ),
                         child: Column(
                           children: [
-                            Container(
-                              width: 100,
-                              height: 100,
-                              decoration: BoxDecoration(
-                                color: Colors.grey.shade200,
-                                borderRadius: BorderRadius.circular(10),
+                            if (_productInfo != null && _productInfo!['photo'] != null && _productInfo!['photo']['thumb'] != null)
+                              Container(
+                                width: 100,
+                                height: 100,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade200,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(10),
+                                  child: _productInfo!['photo']['is_local'] == true
+                                    ? Image.asset(
+                                        _productInfo!['photo']['thumb'],
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (context, error, stackTrace) {
+                                          return Container(
+                                            color: Colors.grey.shade200,
+                                            child: const Center(
+                                              child: Icon(Icons.broken_image, size: 40, color: Colors.grey),
+                                            ),
+                                          );
+                                        },
+                                      )
+                                    : Image.network(
+                                        _productInfo!['photo']['thumb'],
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (context, error, stackTrace) {
+                                          return Container(
+                                            color: Colors.grey.shade200,
+                                            child: const Center(
+                                              child: Icon(Icons.broken_image, size: 40, color: Colors.grey),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                ),
+                              )
+                            else
+                              Container(
+                                width: 100,
+                                height: 100,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade200,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: const Icon(
+                                  Icons.image_not_supported,
+                                  size: 50,
+                                  color: Colors.grey,
+                                ),
                               ),
-                              child: const Icon(
-                                Icons.restaurant_menu,
-                                size: 50,
-                                color: Colors.grey,
-                              ),
-                            ),
                             const SizedBox(height: 15),
                             Text(
                               productName,
@@ -969,14 +1014,11 @@ class _DashboardScreenState extends State<DashboardScreen>
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) =>
-                                          ProductDetailsScreen(
-                                            productName: productName,
-                                            barcode:
-                                                _productInfo!['code']
-                                                    ?.toString() ??
-                                                '',
-                                          ),
+                                      builder: (context) => ProductDetailsScreen(
+                                        productName: productName,
+                                        barcode: _productInfo!['code']?.toString() ?? '',
+                                        photoUrl: _productInfo!['photo']?['thumb'],
+                                      ),
                                     ),
                                   );
                                 },
@@ -1344,7 +1386,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                   width: double.infinity,
                   height: 60,
                   child: ElevatedButton.icon(
-                    onPressed: _selectImageFromGallery,
+                    onPressed: _pickImageFromGallery,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white,
                       foregroundColor: const Color(0xFF2E8B57),
@@ -1417,7 +1459,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                       children: [
                         Expanded(
                           child: ElevatedButton.icon(
-                            onPressed: _selectImageFromGallery,
+                            onPressed: _pickImageFromGallery,
                             icon: const Icon(Icons.refresh, size: 18),
                             label: const Text('Change'),
                             style: ElevatedButton.styleFrom(
@@ -1669,7 +1711,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const ProductDetailsScreen(
+                    builder: (context) => ProductDetailsScreen(
                       productName: "Sample Product",
                       barcode: "123456789012",
                     ),
