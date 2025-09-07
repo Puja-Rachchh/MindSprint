@@ -21,11 +21,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
-        title: const Text(
-          'Settings',
-          style: TextStyle(fontWeight: FontWeight.bold),
+        title: const Row(
+          children: [
+            Icon(Icons.settings, color: Colors.white),
+            SizedBox(width: 8),
+            Text('Settings', style: TextStyle(fontWeight: FontWeight.bold)),
+          ],
         ),
-        backgroundColor: const Color(0xFF6A5ACD),
+        backgroundColor: const Color(0xFF2E8B57),
         foregroundColor: Colors.white,
         elevation: 0,
       ),
@@ -310,14 +313,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: (iconColor ?? const Color(0xFF6A5ACD)).withOpacity(
+                  color: (iconColor ?? const Color(0xFF2E8B57)).withOpacity(
                     0.1,
                   ),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(
                   icon,
-                  color: iconColor ?? const Color(0xFF6A5ACD),
+                  color: iconColor ?? const Color(0xFF2E8B57),
                   size: 24,
                 ),
               ),
@@ -372,10 +375,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: const Color(0xFF6A5ACD).withOpacity(0.1),
+              color: const Color(0xFF2E8B57).withOpacity(0.1),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(icon, color: const Color(0xFF6A5ACD), size: 24),
+            child: Icon(icon, color: const Color(0xFF2E8B57), size: 24),
           ),
           const SizedBox(width: 15),
           Expanded(
@@ -401,7 +404,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           Switch(
             value: value,
             onChanged: onChanged,
-            activeColor: const Color(0xFF6A5ACD),
+            activeColor: const Color(0xFF2E8B57),
           ),
         ],
       ),
@@ -422,7 +425,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ElevatedButton(
               onPressed: () => Navigator.of(context).pop(),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF6A5ACD),
+                backgroundColor: const Color(0xFF2E8B57),
               ),
               child: const Text('OK'),
             ),
@@ -437,18 +440,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
       context: context,
       builder: (BuildContext context) {
         return AboutDialog(
-          applicationName: 'MindSprint',
+          applicationName: 'NutriGo',
           applicationVersion: '1.0.0',
           applicationIcon: const Icon(
             Icons.qr_code_scanner,
             size: 50,
-            color: Color(0xFF6A5ACD),
+            color: Color(0xFF2E8B57),
           ),
           children: const [
             Text('Scan Smart, Eat Healthy'),
             SizedBox(height: 10),
             Text(
-              'MindSprint helps you make informed food choices by scanning barcodes and providing detailed nutritional information.',
+              'NutriGo helps you make informed food choices by scanning barcodes and providing detailed nutritional information.',
             ),
           ],
         );

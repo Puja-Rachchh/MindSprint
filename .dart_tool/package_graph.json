@@ -1,10 +1,10 @@
 {
   "roots": [
-    "mindsprint"
+    "nutrigo"
   ],
   "packages": [
     {
-      "name": "mindsprint",
+      "name": "nutrigo",
       "version": "1.0.0+1",
       "dependencies": [
         "cupertino_icons",

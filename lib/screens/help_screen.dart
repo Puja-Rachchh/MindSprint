@@ -54,7 +54,7 @@ class _HelpScreenState extends State<HelpScreen> {
   final List<FeatureGuide> _guides = [
     FeatureGuide(
       title: 'Getting Started',
-      description: 'Learn the basics of using MindSprint',
+      description: 'Learn the basics of using NutriGo',
       icon: Icons.play_circle,
       steps: [
         'Create your account and set up your profile',
@@ -109,11 +109,17 @@ class _HelpScreenState extends State<HelpScreen> {
       child: Scaffold(
         backgroundColor: const Color(0xFFF8F9FA),
         appBar: AppBar(
-          title: const Text(
-            'Help & Support',
-            style: TextStyle(fontWeight: FontWeight.bold),
+          title: const Row(
+            children: [
+              Icon(Icons.help_outline, color: Colors.white),
+              SizedBox(width: 8),
+              Text(
+                'Help & Support',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ],
           ),
-          backgroundColor: const Color(0xFF6A5ACD),
+          backgroundColor: const Color(0xFF2E8B57),
           foregroundColor: Colors.white,
           elevation: 0,
           bottom: const TabBar(
@@ -245,7 +251,7 @@ class _GuidesTab extends StatelessWidget {
   final List<FeatureGuide> _guides = const [
     FeatureGuide(
       title: 'Getting Started',
-      description: 'Learn the basics of using MindSprint',
+      description: 'Learn the basics of using NutriGo',
       icon: Icons.play_circle,
       steps: [
         'Create your account and set up your profile',
@@ -329,12 +335,12 @@ class _GuidesTab extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF6A5ACD).withOpacity(0.1),
+                    color: const Color(0xFF2E8B57).withOpacity(0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Icon(
                     guide.icon,
-                    color: const Color(0xFF6A5ACD),
+                    color: const Color(0xFF2E8B57),
                     size: 24,
                   ),
                 ),
@@ -377,7 +383,7 @@ class _GuidesTab extends StatelessWidget {
                       width: 24,
                       height: 24,
                       decoration: BoxDecoration(
-                        color: const Color(0xFF6A5ACD),
+                        color: const Color(0xFF2E8B57),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Center(
@@ -442,7 +448,7 @@ class _ContactTab extends StatelessWidget {
             icon: Icons.email,
             title: 'Email Support',
             subtitle: 'Get help via email',
-            description: 'support@mindsprint.com',
+            description: 'support@nutrigo.com',
             onTap: () {
               // In a real app, this would open the email client
               ScaffoldMessenger.of(context).showSnackBar(
@@ -490,12 +496,12 @@ class _ContactTab extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: const Color(0xFF6A5ACD).withOpacity(0.1),
+              color: const Color(0xFF2E8B57).withOpacity(0.1),
               borderRadius: BorderRadius.circular(15),
             ),
             child: Column(
               children: [
-                const Icon(Icons.schedule, color: Color(0xFF6A5ACD), size: 40),
+                const Icon(Icons.schedule, color: Color(0xFF2E8B57), size: 40),
                 const SizedBox(height: 15),
                 const Text(
                   'Support Hours',
@@ -555,10 +561,10 @@ class _ContactTab extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF6A5ACD).withOpacity(0.1),
+                    color: const Color(0xFF2E8B57).withOpacity(0.1),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Icon(icon, color: const Color(0xFF6A5ACD), size: 24),
+                  child: Icon(icon, color: const Color(0xFF2E8B57), size: 24),
                 ),
                 const SizedBox(width: 15),
                 Expanded(
@@ -586,7 +592,7 @@ class _ContactTab extends StatelessWidget {
                         description,
                         style: const TextStyle(
                           fontSize: 12,
-                          color: Color(0xFF6A5ACD),
+                          color: Color(0xFF2E8B57),
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -616,13 +622,13 @@ class _ContactTab extends StatelessWidget {
           ),
           title: const Text('Report a Bug'),
           content: const Text(
-            'To report a bug, please send us an email at support@mindsprint.com with:\n\n• Description of the issue\n• Steps to reproduce\n• Your device information\n• Screenshots (if applicable)',
+            'To report a bug, please send us an email at support@nutrigo.com with:\n\n• Description of the issue\n• Steps to reproduce\n• Your device information\n• Screenshots (if applicable)',
           ),
           actions: [
             ElevatedButton(
               onPressed: () => Navigator.of(context).pop(),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF6A5ACD),
+                backgroundColor: const Color(0xFF2E8B57),
               ),
               child: const Text('Got it'),
             ),
@@ -642,13 +648,13 @@ class _ContactTab extends StatelessWidget {
           ),
           title: const Text('Suggest a Feature'),
           content: const Text(
-            'We love hearing your ideas! Send us your feature suggestions at support@mindsprint.com.\n\nPlease include:\n• Detailed description\n• Why it would be helpful\n• Any mockups or examples',
+            'We love hearing your ideas! Send us your feature suggestions at support@nutrigo.com.\n\nPlease include:\n• Detailed description\n• Why it would be helpful\n• Any mockups or examples',
           ),
           actions: [
             ElevatedButton(
               onPressed: () => Navigator.of(context).pop(),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF6A5ACD),
+                backgroundColor: const Color(0xFF2E8B57),
               ),
               child: const Text('Got it'),
             ),

@@ -58,9 +58,9 @@ class _SplashScreenState extends State<SplashScreen>
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Color(0xFF6A5ACD), // SlateBlue
-              Color(0xFF9370DB), // MediumPurple
-              Color(0xFFBA55D3), // MediumOrchid
+              Color(0xFF2E8B57), // SeaGreen - matching app theme
+              Color(0xFF3CB371), // MediumSeaGreen
+              Color(0xFF20B2AA), // LightSeaGreen
             ],
           ),
         ),
@@ -94,14 +94,14 @@ class _SplashScreenState extends State<SplashScreen>
                         child: const Icon(
                           Icons.qr_code_scanner,
                           size: 60,
-                          color: Color(0xFF6A5ACD),
+                          color: Color(0xFF2E8B57),
                         ),
                       ),
                       const SizedBox(height: 30),
 
                       // App Name
                       const Text(
-                        'MindSprint',
+                        'NutriGo',
                         style: TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
@@ -113,7 +113,7 @@ class _SplashScreenState extends State<SplashScreen>
 
                       // Tagline
                       const Text(
-                        'Scan Smart, Eat Healthy',
+                        'Track Smart, Live Healthy',
                         style: TextStyle(
                           fontSize: 18,
                           color: Colors.white70,
