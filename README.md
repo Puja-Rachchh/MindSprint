@@ -2,7 +2,6 @@
 
 [![Flutter](https://img.shields.io/badge/Flutter-3.22-blue?logo=flutter)](https://flutter.dev/)  
 [![Firebase](https://img.shields.io/badge/Firebase-Authentication-orange?logo=firebase)](https://firebase.google.com/)  
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)  
 
 A **Flutter mobile application** that allows users to **scan product barcodes** and instantly view all **ingredients** of that product. The app includes **Firebase authentication** for secure login/sign-up and provides a **dashboard & detail screen** for displaying product information.  
 
@@ -38,10 +37,15 @@ A **Flutter mobile application** that allows users to **scan product barcodes** 
 
 ## 📂 Project Structure  
 lib/
+
 │── main.dart # Entry point of the app
+
 │── Login_Screen.dart # User login page
+
 │── Signin_Screen.dart # User registration page
+
 │── Dashboard_Screen.dart # Dashboard after login
+
 │── Detail_Screen.dart # Product details (ingredients)
 
 
@@ -53,12 +57,13 @@ lib/
 ```bash
 git clone https://github.com/your-username/flutter-barcode-scanner.git
 cd flutter-barcode-scanner
-
-2️⃣ Install dependencies
+```
+### 2️⃣ Install dependencies
+```bash
 flutter pub get
+```
 
-3️⃣ Configure Firebase
-
+### 3️⃣ Configure Firebase
 - Go to Firebase Console
 
 - Create a project → add Android/iOS app
@@ -69,9 +74,12 @@ flutter pub get
 
 - Enable Authentication → Email/Password
 
-4️⃣ Run the app
+### 4️⃣ Run the app
+```bash
 flutter run
+```
 
 🧑‍💻 Author
 
 Developed with ❤️ by Team MindSpirit
+
