@@ -76,7 +76,13 @@ class _DetailScreenState extends State<DetailScreen> {
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
-        title: const Text('Complete Your Profile'),
+        title: const Row(
+          children: [
+            Icon(Icons.edit_note, color: Colors.white),
+            SizedBox(width: 8),
+            Text('Complete Your Profile'),
+          ],
+        ),
         backgroundColor: const Color(0xFF2E8B57),
         foregroundColor: Colors.white,
         elevation: 0,
@@ -230,7 +236,10 @@ class _DetailScreenState extends State<DetailScreen> {
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.health_and_safety, color: const Color(0xFF2E8B57)),
+                      Icon(
+                        Icons.health_and_safety,
+                        color: const Color(0xFF2E8B57),
+                      ),
                       const SizedBox(width: 12),
                       const Text(
                         'Health Details',
@@ -247,19 +256,20 @@ class _DetailScreenState extends State<DetailScreen> {
                   // Gender Selection
                   const Text(
                     'Gender',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 12),
                   Row(
                     children: [
                       Expanded(child: _buildGenderOption('Male', Icons.male)),
                       const SizedBox(width: 12),
-                      Expanded(child: _buildGenderOption('Female', Icons.female)),
+                      Expanded(
+                        child: _buildGenderOption('Female', Icons.female),
+                      ),
                       const SizedBox(width: 12),
-                      Expanded(child: _buildGenderOption('Other', Icons.transgender)),
+                      Expanded(
+                        child: _buildGenderOption('Other', Icons.transgender),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 24),
@@ -272,7 +282,10 @@ class _DetailScreenState extends State<DetailScreen> {
                       prefixIcon: Icon(Icons.height, color: Color(0xFF2E8B57)),
                       border: OutlineInputBorder(),
                       focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Color(0xFF2E8B57), width: 2),
+                        borderSide: BorderSide(
+                          color: Color(0xFF2E8B57),
+                          width: 2,
+                        ),
                       ),
                     ),
                     keyboardType: TextInputType.number,
@@ -284,10 +297,16 @@ class _DetailScreenState extends State<DetailScreen> {
                     controller: weightController,
                     decoration: const InputDecoration(
                       labelText: 'Weight (kg)',
-                      prefixIcon: Icon(Icons.fitness_center, color: Color(0xFF2E8B57)),
+                      prefixIcon: Icon(
+                        Icons.fitness_center,
+                        color: Color(0xFF2E8B57),
+                      ),
                       border: OutlineInputBorder(),
                       focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Color(0xFF2E8B57), width: 2),
+                        borderSide: BorderSide(
+                          color: Color(0xFF2E8B57),
+                          width: 2,
+                        ),
                       ),
                     ),
                     keyboardType: TextInputType.number,
@@ -299,10 +318,16 @@ class _DetailScreenState extends State<DetailScreen> {
                     controller: allergicController,
                     decoration: const InputDecoration(
                       labelText: 'Allergies (Optional)',
-                      prefixIcon: Icon(Icons.warning_amber, color: Color(0xFF2E8B57)),
+                      prefixIcon: Icon(
+                        Icons.warning_amber,
+                        color: Color(0xFF2E8B57),
+                      ),
                       border: OutlineInputBorder(),
                       focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Color(0xFF2E8B57), width: 2),
+                        borderSide: BorderSide(
+                          color: Color(0xFF2E8B57),
+                          width: 2,
+                        ),
                       ),
                       hintText: 'e.g., Peanuts, Shellfish',
                     ),
@@ -314,10 +339,16 @@ class _DetailScreenState extends State<DetailScreen> {
                     controller: diseaseController,
                     decoration: const InputDecoration(
                       labelText: 'Medical Conditions (Optional)',
-                      prefixIcon: Icon(Icons.medical_services, color: Color(0xFF2E8B57)),
+                      prefixIcon: Icon(
+                        Icons.medical_services,
+                        color: Color(0xFF2E8B57),
+                      ),
                       border: OutlineInputBorder(),
                       focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Color(0xFF2E8B57), width: 2),
+                        borderSide: BorderSide(
+                          color: Color(0xFF2E8B57),
+                          width: 2,
+                        ),
                       ),
                       hintText: 'e.g., Diabetes, Hypertension',
                     ),
@@ -329,10 +360,16 @@ class _DetailScreenState extends State<DetailScreen> {
                     controller: descriptionController,
                     decoration: const InputDecoration(
                       labelText: 'Health Goals (Optional)',
-                      prefixIcon: Icon(Icons.description, color: Color(0xFF2E8B57)),
+                      prefixIcon: Icon(
+                        Icons.description,
+                        color: Color(0xFF2E8B57),
+                      ),
                       border: OutlineInputBorder(),
                       focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Color(0xFF2E8B57), width: 2),
+                        borderSide: BorderSide(
+                          color: Color(0xFF2E8B57),
+                          width: 2,
+                        ),
                       ),
                       hintText: 'Describe your health and nutrition goals',
                     ),
@@ -350,7 +387,8 @@ class _DetailScreenState extends State<DetailScreen> {
               child: ElevatedButton(
                 onPressed: () {
                   // Validate required fields
-                  if (heightController.text.isEmpty || weightController.text.isEmpty) {
+                  if (heightController.text.isEmpty ||
+                      weightController.text.isEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text('Please fill in height and weight'),
@@ -362,7 +400,7 @@ class _DetailScreenState extends State<DetailScreen> {
 
                   // Save data and navigate to login
                   _saveDetailData();
-                  
+
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text('Profile completed successfully!'),

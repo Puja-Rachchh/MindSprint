@@ -11,7 +11,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'MindSprint - Nutrition Tracker',
+      title: 'NutriGo - Nutrition Tracker',
       theme: ThemeData(
         // Primary green theme matching nutrition app
         primarySwatch: Colors.green,

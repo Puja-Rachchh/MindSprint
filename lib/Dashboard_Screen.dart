@@ -11,6 +11,8 @@ import 'screens/help_screen.dart';
 import 'screens/history_screen.dart';
 import 'screens/product_details_screen.dart';
 import 'screens/settings_screen.dart';
+import 'screens/comparison_screen.dart';
+import 'screens/user_profile_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({Key? key}) : super(key: key);
@@ -24,6 +26,9 @@ class _DashboardScreenState extends State<DashboardScreen>
   // Bottom navigation state
   int _selectedIndex = 0;
 
+  // Category selection state
+  String _selectedCategory = "Vegetables";
+
   // Scanner state with lifecycle management
   MobileScannerController? cameraController;
   Map<String, dynamic>? _productInfo;
@@ -34,6 +39,9 @@ class _DashboardScreenState extends State<DashboardScreen>
   // Image picker
   final ImagePicker _imagePicker = ImagePicker();
   File? _selectedImage;
+
+  // Search controller
+  final TextEditingController _searchController = TextEditingController();
 
   // Nutritionix API credentials
   final String nutritionixAppId = '2f699f85';
@@ -48,6 +56,7 @@ class _DashboardScreenState extends State<DashboardScreen>
   @override
   void dispose() {
     _stopScanner();
+    _searchController.dispose();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -64,6 +73,229 @@ class _DashboardScreenState extends State<DashboardScreen>
     setState(() {
       _selectedIndex = index;
     });
+  }
+
+  void _onCategorySelected(String category) {
+    setState(() {
+      _selectedCategory = category;
+    });
+    _showCategoryDetails(category);
+  }
+
+  void _showCategoryDetails(String category) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Selected category: $category'),
+        backgroundColor: const Color(0xFF2E8B57),
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  void _showSearchDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Search Food'),
+        content: TextField(
+          controller: _searchController,
+          decoration: const InputDecoration(
+            hintText: 'Enter food name...',
+            prefixIcon: Icon(Icons.search),
+          ),
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (_searchController.text.isNotEmpty) {
+                Navigator.pop(context);
+                _searchFood(_searchController.text);
+                _searchController.clear();
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF2E8B57),
+            ),
+            child: const Text('Search'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _searchFood(String foodName) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Searching for: $foodName'),
+        backgroundColor: const Color(0xFF2E8B57),
+      ),
+    );
+    // Here you can implement actual food search functionality
+    // For now, we'll just show a message
+  }
+
+  void _onFoodCardTapped(String foodType, String calories) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ProductDetailsScreen(
+          productName: foodType,
+          barcode: "sample_${foodType.toLowerCase().replaceAll(' ', '_')}",
+        ),
+      ),
+    );
+  }
+
+  void _showDietPlan() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const DietPlanScreen()),
+    );
+  }
+
+  void _showScanOptions() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+        ),
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'Scan Product',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF2E8B57),
+              ),
+            ),
+            const SizedBox(height: 20),
+            _buildScanOption(
+              Icons.qr_code_scanner,
+              'Scan Barcode',
+              'Scan product barcode for instant nutrition info',
+              () {
+                Navigator.pop(context);
+                _startScanner();
+              },
+            ),
+            _buildScanOption(
+              Icons.photo_camera,
+              'Take Photo',
+              'Take a photo of product label',
+              () {
+                Navigator.pop(context);
+                _pickImageFromCamera();
+              },
+            ),
+            _buildScanOption(
+              Icons.photo_library,
+              'Choose from Gallery',
+              'Select product image from gallery',
+              () {
+                Navigator.pop(context);
+                _pickImageFromGallery();
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildScanOption(
+    IconData icon,
+    String title,
+    String description,
+    VoidCallback onTap,
+  ) {
+    return ListTile(
+      leading: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: const Color(0xFF2E8B57).withOpacity(0.1),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Icon(icon, color: const Color(0xFF2E8B57), size: 24),
+      ),
+      title: Text(
+        title,
+        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+      ),
+      subtitle: Text(
+        description,
+        style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+      ),
+      onTap: onTap,
+      contentPadding: const EdgeInsets.symmetric(vertical: 8),
+    );
+  }
+
+  Future<void> _pickImageFromCamera() async {
+    final XFile? image = await _imagePicker.pickImage(
+      source: ImageSource.camera,
+    );
+    if (image != null) {
+      setState(() {
+        _selectedImage = File(image.path);
+      });
+      _processSelectedImage();
+    }
+  }
+
+  Future<void> _pickImageFromGallery() async {
+    final XFile? image = await _imagePicker.pickImage(
+      source: ImageSource.gallery,
+    );
+    if (image != null) {
+      setState(() {
+        _selectedImage = File(image.path);
+      });
+      _processSelectedImage();
+    }
+  }
+
+  void _processSelectedImage() {
+    if (_selectedImage != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Image selected! Processing nutrition information...'),
+          backgroundColor: Color(0xFF2E8B57),
+        ),
+      );
+      // Here you can implement image processing logic
+      // For now, we'll navigate to a sample product details page
+      Future.delayed(const Duration(seconds: 2), () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const ProductDetailsScreen(
+              productName: "Scanned Product from Image",
+              barcode: "image_scan_sample",
+            ),
+          ),
+        );
+      });
+    }
   }
 
   Widget _getSelectedPage() {
@@ -403,10 +635,10 @@ class _DashboardScreenState extends State<DashboardScreen>
     if (!mounted || _productInfo == null) return;
 
     final nutriments = _productInfo!['nutriments'] ?? {};
-    final allergens = _productInfo!['allergens_tags'] ?? [];
+    final allergens = _extractAllergens(_productInfo!);
     final productName = _productInfo!['product_name'] ?? 'Unknown Product';
     final brand = _productInfo!['brand'] ?? '';
-    final ingredients = _productInfo!['ingredients'] ?? '';
+    final ingredients = _productInfo!['ingredients_text'] ?? '';
 
     showModalBottomSheet(
       context: context,
@@ -416,272 +648,397 @@ class _DashboardScreenState extends State<DashboardScreen>
         return Container(
           height: MediaQuery.of(context).size.height * 0.9,
           decoration: const BoxDecoration(
-            color: Color(0xFF2E8B57),
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(25),
-              topRight: Radius.circular(25),
-            ),
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
           ),
           child: Column(
             children: [
-              // Header
-              Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Row(
-                  children: [
-                    IconButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      icon: const Icon(Icons.arrow_back, color: Colors.white),
-                    ),
-                    const Spacer(),
-                    IconButton(
-                      onPressed: () {},
-                      icon: const Icon(Icons.search, color: Colors.white),
-                    ),
-                  ],
+              // Handle Bar
+              Container(
+                margin: const EdgeInsets.symmetric(vertical: 8),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
                 ),
               ),
 
-              // Content Container
               Expanded(
-                child: Container(
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(25),
-                      topRight: Radius.circular(25),
-                    ),
-                  ),
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(25.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Food Image and Info
-                        Center(
-                          child: Column(
-                            children: [
-                              Container(
-                                width: 200,
-                                height: 200,
-                                decoration: BoxDecoration(
-                                  color: Colors.black87,
-                                  borderRadius: BorderRadius.circular(100),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.grey.withOpacity(0.3),
-                                      spreadRadius: 0,
-                                      blurRadius: 20,
-                                      offset: const Offset(0, 10),
-                                    ),
-                                  ],
-                                ),
-                                child: const Icon(
-                                  Icons.restaurant_menu,
-                                  color: Colors.white,
-                                  size: 80,
-                                ),
-                              ),
-                              const SizedBox(height: 25),
-                              Text(
-                                productName,
-                                style: const TextStyle(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black87,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                              if (brand.isNotEmpty) ...[
-                                const SizedBox(height: 8),
-                                Text(
-                                  brand,
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.grey[600],
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
-
-                        const SizedBox(height: 30),
-
-                        // Description
-                        if (ingredients.isNotEmpty) ...[
-                          Text(
-                            ingredients.length > 150
-                                ? '${ingredients.substring(0, 150)}...'
-                                : ingredients,
-                            style: const TextStyle(
-                              fontSize: 14,
-                              color: Colors.black54,
-                              height: 1.5,
-                            ),
-                          ),
-                          const SizedBox(height: 30),
-                        ],
-
-                        // Nutrition Facts Grid
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _buildNutritionCard(
-                                '${(nutriments['carbohydrates_100g'] ?? 0).toStringAsFixed(0)}g',
-                                'Carbs',
-                              ),
-                            ),
-                            const SizedBox(width: 15),
-                            Expanded(
-                              child: _buildNutritionCard(
-                                '${(nutriments['proteins_100g'] ?? 0).toStringAsFixed(0)}g',
-                                'Proteins',
-                              ),
-                            ),
-                            const SizedBox(width: 15),
-                            Expanded(
-                              child: _buildNutritionCard(
-                                '${(nutriments['fat_100g'] ?? 0).toStringAsFixed(0)}g',
-                                'Fats',
-                              ),
-                            ),
-                            const SizedBox(width: 15),
-                            Expanded(
-                              child: _buildNutritionCard(
-                                '${(nutriments['sugars_100g'] ?? 0).toStringAsFixed(0)}g',
-                                'Sugars',
-                              ),
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(25, 20, 25, 30),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Product Header
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[50],
+                          borderRadius: BorderRadius.circular(15),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.1),
+                              spreadRadius: 0,
+                              blurRadius: 10,
+                              offset: const Offset(0, 2),
                             ),
                           ],
                         ),
-
-                        const SizedBox(height: 30),
-
-                        // Calories Section
-                        if (nutriments['energy-kcal_100g'] != null) ...[
-                          Container(
-                            padding: const EdgeInsets.all(20),
-                            decoration: BoxDecoration(
-                              color: Colors.grey[50],
-                              borderRadius: BorderRadius.circular(15),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.local_fire_department,
-                                  color: Colors.orange[600],
-                                  size: 24,
-                                ),
-                                const SizedBox(width: 10),
-                                Text(
-                                  '${nutriments['energy-kcal_100g'].toStringAsFixed(0)} Calories',
-                                  style: const TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black87,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 25),
-                        ],
-
-                        // Allergen Warning
-                        if (allergens.isNotEmpty) ...[
-                          Container(
-                            padding: const EdgeInsets.all(15),
-                            decoration: BoxDecoration(
-                              color: Colors.red[50],
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: Colors.red[200]!,
-                                width: 1,
+                        child: Column(
+                          children: [
+                            Container(
+                              width: 100,
+                              height: 100,
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade200,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: const Icon(
+                                Icons.restaurant_menu,
+                                size: 50,
+                                color: Colors.grey,
                               ),
                             ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
+                            const SizedBox(height: 15),
+                            Text(
+                              productName,
+                              style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF2D3748),
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            if (brand.isNotEmpty) ...[
+                              const SizedBox(height: 8),
+                              Text(
+                                brand,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey.shade600,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      // Detailed Nutritional Information Section
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(15),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.1),
+                              spreadRadius: 0,
+                              blurRadius: 10,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Nutritional Information (per 100g)',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF2D3748),
+                              ),
+                            ),
+                            const SizedBox(height: 15),
+                            _buildDetailedNutritionRow(
+                              'Calories',
+                              nutriments['energy-kcal_100g']?.toStringAsFixed(
+                                    0,
+                                  ) ??
+                                  '0',
+                              'kcal',
+                            ),
+                            _buildDetailedNutritionRow(
+                              'Total Fat',
+                              '${(nutriments['fat_100g'] ?? 0).toStringAsFixed(1)}g',
+                              '',
+                            ),
+                            _buildDetailedNutritionRow(
+                              'Saturated Fat',
+                              '${(nutriments['saturated-fat_100g'] ?? 0).toStringAsFixed(1)}g',
+                              '',
+                            ),
+                            _buildDetailedNutritionRow(
+                              'Sodium',
+                              '${((nutriments['sodium_100g'] ?? 0) * 1000).toStringAsFixed(0)}mg',
+                              '',
+                            ),
+                            _buildDetailedNutritionRow(
+                              'Total Carbs',
+                              '${(nutriments['carbohydrates_100g'] ?? 0).toStringAsFixed(1)}g',
+                              '',
+                            ),
+                            _buildDetailedNutritionRow(
+                              'Sugars',
+                              '${(nutriments['sugars_100g'] ?? 0).toStringAsFixed(1)}g',
+                              '',
+                            ),
+                            _buildDetailedNutritionRow(
+                              'Protein',
+                              '${(nutriments['proteins_100g'] ?? 0).toStringAsFixed(1)}g',
+                              '',
+                            ),
+                            if (nutriments['fiber_100g'] != null)
+                              _buildDetailedNutritionRow(
+                                'Fiber',
+                                '${(nutriments['fiber_100g'] ?? 0).toStringAsFixed(1)}g',
+                                '',
+                              ),
+                          ],
+                        ),
+                      ),
+
+                      const SizedBox(height: 20),
+
+                      // Ingredients Section
+                      if (ingredients.isNotEmpty) ...[
+                        Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(15),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.1),
+                                spreadRadius: 0,
+                                blurRadius: 10,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Ingredients',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF2D3748),
+                                ),
+                              ),
+                              const SizedBox(height: 15),
+                              Text(
+                                ingredients,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey.shade700,
+                                  height: 1.5,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                      ],
+
+                      // Allergen Information Section
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(15),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.1),
+                              spreadRadius: 0,
+                              blurRadius: 10,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Allergen Information',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF2D3748),
+                              ),
+                            ),
+                            const SizedBox(height: 15),
+                            if (allergens.isNotEmpty) ...[
+                              Container(
+                                padding: const EdgeInsets.all(15),
+                                decoration: BoxDecoration(
+                                  color: Colors.red[50],
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(color: Colors.red[200]!),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Icon(
+                                          Icons.warning,
+                                          color: Colors.red[600],
+                                        ),
+                                        const SizedBox(width: 10),
+                                        const Text(
+                                          'Contains allergens:',
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color: Colors.red,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 10),
+                                    ...allergens
+                                        .map(
+                                          (allergen) => Text(
+                                            '• $allergen',
+                                            style: const TextStyle(
+                                              fontSize: 14,
+                                              color: Colors.red,
+                                            ),
+                                          ),
+                                        )
+                                        .toList(),
+                                  ],
+                                ),
+                              ),
+                            ] else ...[
+                              Container(
+                                padding: const EdgeInsets.all(15),
+                                decoration: BoxDecoration(
+                                  color: const Color(
+                                    0xFF38B2AC,
+                                  ).withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                    color: const Color(
+                                      0xFF38B2AC,
+                                    ).withOpacity(0.3),
+                                  ),
+                                ),
+                                child: const Row(
                                   children: [
                                     Icon(
-                                      Icons.warning,
-                                      color: Colors.red[600],
-                                      size: 20,
+                                      Icons.check_circle,
+                                      color: Color(0xFF38B2AC),
                                     ),
-                                    const SizedBox(width: 8),
-                                    const Text(
-                                      'Allergen Warning',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.red,
+                                    SizedBox(width: 10),
+                                    Expanded(
+                                      child: Text(
+                                        'No common allergens detected',
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          color: Color(0xFF38B2AC),
+                                          fontWeight: FontWeight.w600,
+                                        ),
                                       ),
                                     ),
                                   ],
                                 ),
-                                const SizedBox(height: 10),
-                                ...allergens
-                                    .map(
-                                      (allergen) => Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                          vertical: 2,
-                                        ),
-                                        child: Text(
-                                          '• $allergen',
-                                          style: const TextStyle(
-                                            color: Colors.red,
-                                            fontSize: 14,
-                                          ),
-                                        ),
-                                      ),
-                                    )
-                                    .toList(),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 25),
-                        ],
-
-                        // Check Recipe Button
-                        Container(
-                          width: double.infinity,
-                          height: 55,
-                          child: ElevatedButton(
-                            onPressed: () {
-                              Navigator.of(context).pop();
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Recipe feature coming soon!'),
-                                  backgroundColor: Color(0xFF2E8B57),
-                                ),
-                              );
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF2E8B57),
-                              foregroundColor: Colors.white,
-                              elevation: 0,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(27),
                               ),
-                            ),
-                            child: const Text(
-                              'CHECK THE RECIPE',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                letterSpacing: 0.5,
-                              ),
-                            ),
-                          ),
+                            ],
+                          ],
                         ),
+                      ),
 
-                        const SizedBox(height: 20),
-                      ],
-                    ),
+                      const SizedBox(height: 25),
+
+                      // Action Buttons
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Container(
+                              height: 50,
+                              child: ElevatedButton.icon(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          ProductDetailsScreen(
+                                            productName: productName,
+                                            barcode:
+                                                _productInfo!['code']
+                                                    ?.toString() ??
+                                                '',
+                                          ),
+                                    ),
+                                  );
+                                },
+                                icon: const Icon(Icons.info_outline, size: 20),
+                                label: const Text(
+                                  'View Details',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF2E8B57),
+                                  foregroundColor: Colors.white,
+                                  elevation: 0,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 15),
+                          Expanded(
+                            child: Container(
+                              height: 50,
+                              child: ElevatedButton.icon(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        'Recipe feature coming soon!',
+                                      ),
+                                      backgroundColor: Color(0xFF2E8B57),
+                                    ),
+                                  );
+                                },
+                                icon: const Icon(Icons.restaurant, size: 20),
+                                label: const Text(
+                                  'Find Recipes',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.grey[100],
+                                  foregroundColor: Colors.black87,
+                                  elevation: 0,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 20),
+                    ],
                   ),
                 ),
               ),
@@ -692,39 +1049,26 @@ class _DashboardScreenState extends State<DashboardScreen>
     );
   }
 
-  Widget _buildNutritionCard(String value, String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[200]!, width: 1),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 0,
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
+  Widget _buildDetailedNutritionRow(
+    String nutrient,
+    String amount,
+    String unit,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            value,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
-            ),
+            nutrient,
+            style: const TextStyle(fontSize: 14, color: Color(0xFF2D3748)),
           ),
-          const SizedBox(height: 5),
           Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey[600],
-              fontWeight: FontWeight.w500,
+            '$amount $unit'.trim(),
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF2D3748),
             ),
           ),
         ],
@@ -760,16 +1104,19 @@ class _DashboardScreenState extends State<DashboardScreen>
                         color: Colors.black54,
                       ),
                     ),
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.grey[100],
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: const Icon(
-                        Icons.search,
-                        size: 20,
-                        color: Colors.black54,
+                    GestureDetector(
+                      onTap: _showSearchDialog,
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[100],
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(
+                          Icons.search,
+                          size: 20,
+                          color: Colors.black54,
+                        ),
                       ),
                     ),
                   ],
@@ -802,13 +1149,37 @@ class _DashboardScreenState extends State<DashboardScreen>
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    _buildCategoryIcon(Icons.local_dining, "Fast Food", false),
-                    _buildCategoryIcon(Icons.restaurant, "Vegetables", true),
-                    _buildCategoryIcon(Icons.local_bar, "Drinks", false),
-                    _buildCategoryIcon(
-                      Icons.shopping_basket,
-                      "Groceries",
-                      false,
+                    GestureDetector(
+                      onTap: () => _onCategorySelected("Fast Food"),
+                      child: _buildCategoryIcon(
+                        Icons.local_dining,
+                        "Fast Food",
+                        _selectedCategory == "Fast Food",
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () => _onCategorySelected("Vegetables"),
+                      child: _buildCategoryIcon(
+                        Icons.restaurant,
+                        "Vegetables",
+                        _selectedCategory == "Vegetables",
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () => _onCategorySelected("Drinks"),
+                      child: _buildCategoryIcon(
+                        Icons.local_bar,
+                        "Drinks",
+                        _selectedCategory == "Drinks",
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () => _onCategorySelected("Groceries"),
+                      child: _buildCategoryIcon(
+                        Icons.shopping_basket,
+                        "Groceries",
+                        _selectedCategory == "Groceries",
+                      ),
                     ),
                   ],
                 ),
@@ -824,22 +1195,34 @@ class _DashboardScreenState extends State<DashboardScreen>
                 Row(
                   children: [
                     Expanded(
-                      child: _buildFoodCard(
-                        "Vegetables &\nBeans",
-                        "43 Calories",
-                        Colors.green[100]!,
-                        Icons.eco,
-                        Colors.green,
+                      child: GestureDetector(
+                        onTap: () => _onFoodCardTapped(
+                          "Vegetables & Beans",
+                          "43 Calories",
+                        ),
+                        child: _buildFoodCard(
+                          "Vegetables &\nBeans",
+                          "43 Calories",
+                          Colors.green[100]!,
+                          Icons.eco,
+                          Colors.green,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 15),
                     Expanded(
-                      child: _buildFoodCard(
-                        "Vegetables &\nMeat",
-                        "43 Calories",
-                        Colors.orange[100]!,
-                        Icons.restaurant_menu,
-                        Colors.orange,
+                      child: GestureDetector(
+                        onTap: () => _onFoodCardTapped(
+                          "Vegetables & Meat",
+                          "43 Calories",
+                        ),
+                        child: _buildFoodCard(
+                          "Vegetables &\nMeat",
+                          "43 Calories",
+                          Colors.orange[100]!,
+                          Icons.restaurant_menu,
+                          Colors.orange,
+                        ),
                       ),
                     ),
                   ],
@@ -886,21 +1269,24 @@ class _DashboardScreenState extends State<DashboardScreen>
                               ),
                             ),
                             const SizedBox(height: 15),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 20,
-                                vertical: 10,
-                              ),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF2E8B57),
-                                borderRadius: BorderRadius.circular(25),
-                              ),
-                              child: const Text(
-                                "Learn More",
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
+                            GestureDetector(
+                              onTap: _showDietPlan,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 20,
+                                  vertical: 10,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF2E8B57),
+                                  borderRadius: BorderRadius.circular(25),
+                                ),
+                                child: const Text(
+                                  "Learn More",
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
                               ),
                             ),
@@ -920,89 +1306,6 @@ class _DashboardScreenState extends State<DashboardScreen>
                             fit: BoxFit.cover,
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 30),
-
-                // Quick Access Section
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.1),
-                        spreadRadius: 0,
-                        blurRadius: 20,
-                        offset: const Offset(0, 5),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        "Quick Access",
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          _buildQuickAccessButton(
-                            Icons.history,
-                            "History",
-                            () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const HistoryScreen(),
-                              ),
-                            ),
-                          ),
-                          _buildQuickAccessButton(
-                            Icons.settings,
-                            "Settings",
-                            () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const SettingsScreen(),
-                              ),
-                            ),
-                          ),
-                          _buildQuickAccessButton(
-                            Icons.help,
-                            "Help",
-                            () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const HelpScreen(),
-                              ),
-                            ),
-                          ),
-                          _buildQuickAccessButton(
-                            Icons.info,
-                            "Details",
-                            () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    const ProductDetailsScreen(
-                                      productName: "Sample Product",
-                                      barcode: "123456789012",
-                                    ),
-                              ),
-                            ),
-                          ),
-                        ],
                       ),
                     ],
                   ),
@@ -1281,38 +1584,6 @@ class _DashboardScreenState extends State<DashboardScreen>
     );
   }
 
-  Widget _buildQuickAccessButton(
-    IconData icon,
-    String label,
-    VoidCallback onTap,
-  ) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        children: [
-          Container(
-            width: 60,
-            height: 60,
-            decoration: BoxDecoration(
-              color: const Color(0xFF2E8B57).withOpacity(0.1),
-              borderRadius: BorderRadius.circular(15),
-            ),
-            child: Icon(icon, size: 24, color: const Color(0xFF2E8B57)),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-              color: Colors.black87,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   void _showNavigationDrawer(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -1402,6 +1673,52 @@ class _DashboardScreenState extends State<DashboardScreen>
                       productName: "Sample Product",
                       barcode: "123456789012",
                     ),
+                  ),
+                );
+              },
+            ),
+            _buildDrawerItem(
+              Icons.qr_code_scanner,
+              'Quick Scan',
+              'Scan barcode immediately',
+              () {
+                Navigator.pop(context);
+                _startScanner();
+              },
+            ),
+            _buildDrawerItem(
+              Icons.restaurant_menu,
+              'Diet Plans',
+              'Personalized meal plans',
+              () {
+                Navigator.pop(context);
+                _showDietPlan();
+              },
+            ),
+            _buildDrawerItem(
+              Icons.compare_arrows,
+              'Compare Products',
+              'Compare nutrition facts',
+              () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const ComparisonScreen(),
+                  ),
+                );
+              },
+            ),
+            _buildDrawerItem(
+              Icons.person_outline,
+              'User Profile',
+              'Manage your profile & preferences',
+              () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const UserProfileScreen(),
                   ),
                 );
               },
@@ -1687,84 +2004,220 @@ class _DashboardScreenState extends State<DashboardScreen>
   }
 
   Widget _buildStatisticsPage() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header
-          _buildStatisticsHeader(),
-          const SizedBox(height: 20),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Determine if we're on a tablet or desktop
+        bool isTabletOrDesktop = constraints.maxWidth > 768;
+        bool isDesktop = constraints.maxWidth > 1024;
 
-          // Health Overview Cards
-          _buildHealthOverviewSection(),
-          const SizedBox(height: 20),
+        return SingleChildScrollView(
+          padding: EdgeInsets.all(isTabletOrDesktop ? 24.0 : 16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header
+              _buildStatisticsHeader(),
+              SizedBox(height: isTabletOrDesktop ? 32 : 20),
 
-          // Nutrition Analytics
-          _buildNutritionAnalyticsSection(),
-          const SizedBox(height: 20),
+              // Content based on screen size
+              if (isDesktop)
+                _buildDesktopLayout()
+              else if (isTabletOrDesktop)
+                _buildTabletLayout()
+              else
+                _buildMobileLayout(),
+            ],
+          ),
+        );
+      },
+    );
+  }
 
-          // Food Activity Stats
-          _buildFoodActivitySection(),
-          const SizedBox(height: 20),
+  Widget _buildDesktopLayout() {
+    return Column(
+      children: [
+        // Top row - Health Overview and Nutrition Analytics
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              flex: 1,
+              child: Column(
+                children: [
+                  _buildHealthOverviewSection(),
+                  const SizedBox(height: 32),
+                  _buildFoodActivitySection(),
+                ],
+              ),
+            ),
+            const SizedBox(width: 32),
+            Expanded(
+              flex: 1,
+              child: Column(
+                children: [
+                  _buildNutritionAnalyticsSection(),
+                  const SizedBox(height: 32),
+                  _buildDietProgressSection(),
+                ],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 32),
 
-          // Diet Plan Progress
-          _buildDietProgressSection(),
-          const SizedBox(height: 20),
+        // Bottom - Weekly Insights full width
+        _buildWeeklyInsightsSection(),
+      ],
+    );
+  }
 
-          // Weekly Insights
-          _buildWeeklyInsightsSection(),
-        ],
-      ),
+  Widget _buildTabletLayout() {
+    return Column(
+      children: [
+        // Health Overview Cards in 2x2 grid for tablet
+        _buildHealthOverviewSection(),
+        const SizedBox(height: 24),
+
+        // Nutrition and Activity in row
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(child: _buildNutritionAnalyticsSection()),
+            const SizedBox(width: 24),
+            Expanded(child: _buildFoodActivitySection()),
+          ],
+        ),
+        const SizedBox(height: 24),
+
+        // Diet progress and insights
+        _buildDietProgressSection(),
+        const SizedBox(height: 24),
+        _buildWeeklyInsightsSection(),
+      ],
+    );
+  }
+
+  Widget _buildMobileLayout() {
+    return Column(
+      children: [
+        // Health Overview Cards
+        _buildHealthOverviewSection(),
+        const SizedBox(height: 20),
+
+        // Nutrition Analytics
+        _buildNutritionAnalyticsSection(),
+        const SizedBox(height: 20),
+
+        // Food Activity Stats
+        _buildFoodActivitySection(),
+        const SizedBox(height: 20),
+
+        // Diet Plan Progress
+        _buildDietProgressSection(),
+        const SizedBox(height: 20),
+
+        // Weekly Insights
+        _buildWeeklyInsightsSection(),
+      ],
     );
   }
 
   Widget _buildStatisticsHeader() {
-    return Container(
-      padding: const EdgeInsets.all(20.0),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF2E8B57), Color(0xFF3CB371)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(15),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(12),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        bool isCompact = constraints.maxWidth < 400;
+
+        return Container(
+          padding: EdgeInsets.all(isCompact ? 16.0 : 20.0),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFF2E8B57), Color(0xFF3CB371)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
-            child: const Icon(Icons.analytics, color: Colors.white, size: 28),
+            borderRadius: BorderRadius.circular(15),
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Your Health Analytics',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
+          child: isCompact
+              ? Column(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(
+                        Icons.analytics,
+                        color: Colors.white,
+                        size: 28,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Column(
+                      children: [
+                        const Text(
+                          'Your Health Analytics',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Track your nutrition journey',
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.9),
+                            fontSize: 14,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ],
+                )
+              : Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(
+                        Icons.analytics,
+                        color: Colors.white,
+                        size: 28,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Your Health Analytics',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          Text(
+                            'Track your nutrition journey',
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.9),
+                              fontSize: 16,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-                Text(
-                  'Track your nutrition journey',
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(0.9),
-                    fontSize: 16,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -1795,66 +2248,125 @@ class _DashboardScreenState extends State<DashboardScreen>
       }
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Health Overview',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF2E8B57),
-          ),
-        ),
-        const SizedBox(height: 12),
-        Row(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        bool isWideScreen = constraints.maxWidth > 600;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-              child: _buildStatCard(
-                title: 'BMI',
-                value: bmi != null ? bmi.toStringAsFixed(1) : '--',
-                subtitle: bmiCategory,
-                icon: Icons.monitor_weight,
-                color: _getBMIColor(bmi),
+            const Text(
+              'Health Overview',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF2E8B57),
               ),
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _buildStatCard(
-                title: 'Current Weight',
-                value: weightStr ?? '--',
-                subtitle: 'kg',
-                icon: Icons.fitness_center,
-                color: const Color(0xFF4CAF50),
+            const SizedBox(height: 12),
+
+            // Responsive grid layout
+            if (isWideScreen)
+              // Wide screen: 4 cards in a row
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildStatCard(
+                      title: 'BMI',
+                      value: bmi != null ? bmi.toStringAsFixed(1) : '--',
+                      subtitle: bmiCategory,
+                      icon: Icons.monitor_weight,
+                      color: _getBMIColor(bmi),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildStatCard(
+                      title: 'Current Weight',
+                      value: weightStr ?? '--',
+                      subtitle: 'kg',
+                      icon: Icons.fitness_center,
+                      color: const Color(0xFF4CAF50),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildStatCard(
+                      title: 'Height',
+                      value: heightStr ?? '--',
+                      subtitle: 'cm',
+                      icon: Icons.height,
+                      color: const Color(0xFF2196F3),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _buildStatCard(
+                      title: 'Age',
+                      value: SigninScreen.userData['user_age'] ?? '--',
+                      subtitle: 'years',
+                      icon: Icons.cake,
+                      color: const Color(0xFF9C27B0),
+                    ),
+                  ),
+                ],
+              )
+            else
+              // Mobile: 2x2 grid
+              Column(
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildStatCard(
+                          title: 'BMI',
+                          value: bmi != null ? bmi.toStringAsFixed(1) : '--',
+                          subtitle: bmiCategory,
+                          icon: Icons.monitor_weight,
+                          color: _getBMIColor(bmi),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildStatCard(
+                          title: 'Current Weight',
+                          value: weightStr ?? '--',
+                          subtitle: 'kg',
+                          icon: Icons.fitness_center,
+                          color: const Color(0xFF4CAF50),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildStatCard(
+                          title: 'Height',
+                          value: heightStr ?? '--',
+                          subtitle: 'cm',
+                          icon: Icons.height,
+                          color: const Color(0xFF2196F3),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildStatCard(
+                          title: 'Age',
+                          value: SigninScreen.userData['user_age'] ?? '--',
+                          subtitle: 'years',
+                          icon: Icons.cake,
+                          color: const Color(0xFF9C27B0),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-            ),
           ],
-        ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(
-              child: _buildStatCard(
-                title: 'Height',
-                value: heightStr ?? '--',
-                subtitle: 'cm',
-                icon: Icons.height,
-                color: const Color(0xFF2196F3),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _buildStatCard(
-                title: 'Age',
-                value: SigninScreen.userData['user_age'] ?? '--',
-                subtitle: 'years',
-                icon: Icons.cake,
-                color: const Color(0xFF9C27B0),
-              ),
-            ),
-          ],
-        ),
-      ],
+        );
+      },
     );
   }
 
@@ -1867,65 +2379,70 @@ class _DashboardScreenState extends State<DashboardScreen>
   }
 
   Widget _buildNutritionAnalyticsSection() {
-    // Mock data for demonstration - in a real app, this would come from actual tracking
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Daily Nutrition',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF2E8B57),
-          ),
-        ),
-        const SizedBox(height: 12),
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withOpacity(0.1),
-                spreadRadius: 1,
-                blurRadius: 8,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        bool isWideScreen = constraints.maxWidth > 400;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Daily Nutrition',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF2E8B57),
               ),
-            ],
-          ),
-          child: Column(
-            children: [
-              _buildNutritionProgressBar(
-                'Calories',
-                1520,
-                2000,
-                const Color(0xFFFF5722),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: EdgeInsets.all(isWideScreen ? 20 : 16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.1),
+                    spreadRadius: 1,
+                    blurRadius: 8,
+                  ),
+                ],
               ),
-              const SizedBox(height: 16),
-              _buildNutritionProgressBar(
-                'Protein',
-                68,
-                120,
-                const Color(0xFF2196F3),
+              child: Column(
+                children: [
+                  _buildNutritionProgressBar(
+                    'Calories',
+                    1520,
+                    2000,
+                    const Color(0xFFFF5722),
+                  ),
+                  SizedBox(height: isWideScreen ? 20 : 16),
+                  _buildNutritionProgressBar(
+                    'Protein',
+                    68,
+                    120,
+                    const Color(0xFF2196F3),
+                  ),
+                  SizedBox(height: isWideScreen ? 20 : 16),
+                  _buildNutritionProgressBar(
+                    'Carbs',
+                    180,
+                    250,
+                    const Color(0xFFFF9800),
+                  ),
+                  SizedBox(height: isWideScreen ? 20 : 16),
+                  _buildNutritionProgressBar(
+                    'Fat',
+                    45,
+                    65,
+                    const Color(0xFF9C27B0),
+                  ),
+                ],
               ),
-              const SizedBox(height: 16),
-              _buildNutritionProgressBar(
-                'Carbs',
-                180,
-                250,
-                const Color(0xFFFF9800),
-              ),
-              const SizedBox(height: 16),
-              _buildNutritionProgressBar(
-                'Fat',
-                45,
-                65,
-                const Color(0xFF9C27B0),
-              ),
-            ],
-          ),
-        ),
-      ],
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -1937,110 +2454,181 @@ class _DashboardScreenState extends State<DashboardScreen>
   ) {
     double progress = (current / target).clamp(0.0, 1.0);
 
-    return Column(
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        bool isCompact = constraints.maxWidth < 300;
+
+        return Column(
           children: [
-            Text(
-              nutrient,
-              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Flexible(
+                  child: Text(
+                    nutrient,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: isCompact ? 14 : 16,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                Text(
+                  '$current / $target',
+                  style: TextStyle(
+                    color: Colors.grey.shade600,
+                    fontSize: isCompact ? 12 : 14,
+                  ),
+                ),
+              ],
             ),
-            Text(
-              '$current / $target',
-              style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+            SizedBox(height: isCompact ? 6 : 8),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: LinearProgressIndicator(
+                value: progress,
+                backgroundColor: color.withOpacity(0.2),
+                valueColor: AlwaysStoppedAnimation<Color>(color),
+                minHeight: isCompact ? 6 : 8,
+              ),
             ),
           ],
-        ),
-        const SizedBox(height: 8),
-        LinearProgressIndicator(
-          value: progress,
-          backgroundColor: color.withOpacity(0.2),
-          valueColor: AlwaysStoppedAnimation<Color>(color),
-        ),
-      ],
+        );
+      },
     );
   }
 
   Widget _buildFoodActivitySection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Food Activity',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF2E8B57),
-          ),
-        ),
-        const SizedBox(height: 12),
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withOpacity(0.1),
-                spreadRadius: 1,
-                blurRadius: 8,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        bool isWideScreen = constraints.maxWidth > 500;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Food Activity',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF2E8B57),
               ),
-            ],
-          ),
-          child: Column(
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildActivityItem(
-                      icon: Icons.qr_code_scanner,
-                      title: 'Products Scanned',
-                      value: '24',
-                      subtitle: 'This week',
-                      color: const Color(0xFF2E8B57),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: _buildActivityItem(
-                      icon: Icons.warning_amber,
-                      title: 'Allergen Alerts',
-                      value: '3',
-                      subtitle: 'Avoided',
-                      color: const Color(0xFFFF5722),
-                    ),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: EdgeInsets.all(isWideScreen ? 20 : 16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.1),
+                    spreadRadius: 1,
+                    blurRadius: 8,
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildActivityItem(
-                      icon: Icons.favorite,
-                      title: 'Healthy Choices',
-                      value: '18',
-                      subtitle: 'This week',
-                      color: const Color(0xFF4CAF50),
+              child: isWideScreen
+                  // Wide screen: All items in a single row
+                  ? Row(
+                      children: [
+                        Expanded(
+                          child: _buildActivityItem(
+                            icon: Icons.qr_code_scanner,
+                            title: 'Products Scanned',
+                            value: '24',
+                            subtitle: 'This week',
+                            color: const Color(0xFF2E8B57),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: _buildActivityItem(
+                            icon: Icons.warning_amber,
+                            title: 'Allergen Alerts',
+                            value: '3',
+                            subtitle: 'Avoided',
+                            color: const Color(0xFFFF5722),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: _buildActivityItem(
+                            icon: Icons.favorite,
+                            title: 'Healthy Choices',
+                            value: '18',
+                            subtitle: 'This week',
+                            color: const Color(0xFF4CAF50),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: _buildActivityItem(
+                            icon: Icons.restaurant_menu,
+                            title: 'Diet Plan Days',
+                            value: '12',
+                            subtitle: 'Followed',
+                            color: const Color(0xFF9C27B0),
+                          ),
+                        ),
+                      ],
+                    )
+                  // Mobile: 2x2 grid
+                  : Column(
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildActivityItem(
+                                icon: Icons.qr_code_scanner,
+                                title: 'Products Scanned',
+                                value: '24',
+                                subtitle: 'This week',
+                                color: const Color(0xFF2E8B57),
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: _buildActivityItem(
+                                icon: Icons.warning_amber,
+                                title: 'Allergen Alerts',
+                                value: '3',
+                                subtitle: 'Avoided',
+                                color: const Color(0xFFFF5722),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildActivityItem(
+                                icon: Icons.favorite,
+                                title: 'Healthy Choices',
+                                value: '18',
+                                subtitle: 'This week',
+                                color: const Color(0xFF4CAF50),
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: _buildActivityItem(
+                                icon: Icons.restaurant_menu,
+                                title: 'Diet Plan Days',
+                                value: '12',
+                                subtitle: 'Followed',
+                                color: const Color(0xFF9C27B0),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: _buildActivityItem(
-                      icon: Icons.restaurant_menu,
-                      title: 'Diet Plan Days',
-                      value: '12',
-                      subtitle: 'Followed',
-                      color: const Color(0xFF9C27B0),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ],
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -2051,48 +2639,65 @@ class _DashboardScreenState extends State<DashboardScreen>
     required String subtitle,
     required Color color,
   }) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        double itemWidth = constraints.maxWidth;
+        bool isCompact = itemWidth < 150;
+
+        return Container(
+          padding: EdgeInsets.all(isCompact ? 8 : 12),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, color: color, size: 20),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.grey.shade700,
+              Row(
+                children: [
+                  Icon(icon, color: color, size: isCompact ? 16 : 20),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: isCompact ? 10 : 12,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.grey.shade700,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+                ],
+              ),
+              SizedBox(height: isCompact ? 6 : 8),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: isCompact ? 20 : 24,
+                    fontWeight: FontWeight.bold,
+                    color: color,
+                  ),
                 ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                subtitle,
+                style: TextStyle(
+                  fontSize: isCompact ? 9 : 10,
+                  color: Colors.grey.shade600,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
-          ),
-          Text(
-            subtitle,
-            style: TextStyle(fontSize: 10, color: Colors.grey.shade600),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -2208,20 +2813,139 @@ class _DashboardScreenState extends State<DashboardScreen>
   }
 
   Widget _buildWeeklyInsightsSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Weekly Insights',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Color(0xFF2E8B57),
-          ),
-        ),
-        const SizedBox(height: 12),
-        Container(
-          padding: const EdgeInsets.all(16),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        bool isWideScreen = constraints.maxWidth > 600;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Weekly Insights',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF2E8B57),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: EdgeInsets.all(isWideScreen ? 20 : 16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.1),
+                    spreadRadius: 1,
+                    blurRadius: 8,
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  _buildInsightItem(
+                    icon: Icons.trending_up,
+                    title: 'Great Progress!',
+                    description:
+                        'You\'ve maintained your diet plan for 5 consecutive days.',
+                    color: const Color(0xFF4CAF50),
+                  ),
+                  Divider(height: isWideScreen ? 32 : 24),
+                  _buildInsightItem(
+                    icon: Icons.local_dining,
+                    title: 'Protein Goal',
+                    description:
+                        'You\'re 15% below your daily protein target. Consider adding lean meats or beans.',
+                    color: const Color(0xFFFF9800),
+                  ),
+                  Divider(height: isWideScreen ? 32 : 24),
+                  _buildInsightItem(
+                    icon: Icons.water_drop,
+                    title: 'Stay Hydrated',
+                    description:
+                        'Remember to drink at least 8 glasses of water daily for optimal health.',
+                    color: const Color(0xFF2196F3),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildInsightItem({
+    required IconData icon,
+    required String title,
+    required String description,
+    required Color color,
+  }) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        bool isCompact = constraints.maxWidth < 400;
+
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: EdgeInsets.all(isCompact ? 6 : 8),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(icon, color: color, size: isCompact ? 20 : 24),
+            ),
+            SizedBox(width: isCompact ? 8 : 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: isCompact ? 14 : 16,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    description,
+                    style: TextStyle(
+                      color: Colors.grey.shade600,
+                      fontSize: isCompact ? 12 : 14,
+                      height: 1.4,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildStatCard({
+    required String title,
+    required String value,
+    required String subtitle,
+    required IconData icon,
+    required Color color,
+  }) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Determine responsive sizing
+        double cardWidth = constraints.maxWidth;
+        double fontSize = cardWidth < 120 ? 20 : 24;
+        double iconSize = cardWidth < 120 ? 16 : 20;
+        double titleFontSize = cardWidth < 120 ? 10 : 12;
+        double subtitleFontSize = cardWidth < 120 ? 10 : 12;
+        double padding = cardWidth < 120 ? 12 : 16;
+
+        return Container(
+          padding: EdgeInsets.all(padding),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(12),
@@ -2234,138 +2958,60 @@ class _DashboardScreenState extends State<DashboardScreen>
             ],
           ),
           child: Column(
-            children: [
-              _buildInsightItem(
-                icon: Icons.trending_up,
-                title: 'Great Progress!',
-                description:
-                    'You\'ve maintained your diet plan for 5 consecutive days.',
-                color: const Color(0xFF4CAF50),
-              ),
-              const Divider(height: 24),
-              _buildInsightItem(
-                icon: Icons.local_dining,
-                title: 'Protein Goal',
-                description:
-                    'You\'re 15% below your daily protein target. Consider adding lean meats or beans.',
-                color: const Color(0xFFFF9800),
-              ),
-              const Divider(height: 24),
-              _buildInsightItem(
-                icon: Icons.water_drop,
-                title: 'Stay Hydrated',
-                description:
-                    'Remember to drink at least 8 glasses of water daily for optimal health.',
-                color: const Color(0xFF2196F3),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildInsightItem({
-    required IconData icon,
-    required String title,
-    required String description,
-    required Color color,
-  }) {
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Icon(icon, color: color, size: 24),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 16,
-                ),
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: color.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(icon, color: color, size: iconSize),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: titleFontSize,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.grey.shade700,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 4),
-              Text(
-                description,
-                style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildStatCard({
-    required String title,
-    required String value,
-    required String subtitle,
-    required IconData icon,
-    required Color color,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 8,
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Icon(icon, color: color, size: 20),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
+              const SizedBox(height: 12),
+              FittedBox(
+                fit: BoxFit.scaleDown,
                 child: Text(
-                  title,
+                  value,
                   style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.grey.shade700,
+                    fontSize: fontSize,
+                    fontWeight: FontWeight.bold,
+                    color: color,
                   ),
                 ),
               ),
+              const SizedBox(height: 2),
+              Text(
+                subtitle,
+                style: TextStyle(
+                  fontSize: subtitleFontSize,
+                  color: Colors.grey.shade600,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
             ],
           ),
-          const SizedBox(height: 12),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
-          ),
-          Text(
-            subtitle,
-            style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -2594,30 +3240,70 @@ class _DashboardScreenState extends State<DashboardScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('MindSprint - Nutrition Tracker'),
+        title: const Row(
+          children: [
+            Icon(Icons.dashboard, color: Colors.white),
+            SizedBox(width: 8),
+            Text('NutriGo - Nutrition Tracker'),
+          ],
+        ),
         automaticallyImplyLeading: false, // Remove back button
         backgroundColor: const Color(0xFF2E8B57),
         foregroundColor: Colors.white,
         elevation: 0,
       ),
       body: _getSelectedPage(),
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        currentIndex: _selectedIndex,
-        selectedItemColor: const Color(0xFF2E8B57),
-        unselectedItemColor: Colors.grey,
-        onTap: _onItemTapped,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.restaurant_menu),
-            label: 'Nutrify',
+      floatingActionButton: FloatingActionButton(
+        onPressed: _showScanOptions,
+        backgroundColor: const Color(0xFF2E8B57),
+        foregroundColor: Colors.white,
+        elevation: 8,
+        tooltip: 'Scan Product',
+        child: const Icon(Icons.qr_code_scanner, size: 28),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      bottomNavigationBar: BottomAppBar(
+        shape: const CircularNotchedRectangle(),
+        notchMargin: 8.0,
+        child: Container(
+          height: 60,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _buildNavItem(Icons.home, 'Home', 0),
+              _buildNavItem(Icons.restaurant_menu, 'Nutrify', 1),
+              const SizedBox(width: 40), // Space for FAB
+              _buildNavItem(Icons.analytics, 'Statistics', 2),
+              _buildNavItem(Icons.person, 'Profile', 3),
+            ],
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.analytics),
-            label: 'Statistics',
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNavItem(IconData icon, String label, int index) {
+    final isSelected = _selectedIndex == index;
+    return GestureDetector(
+      onTap: () => _onItemTapped(index),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            icon,
+            color: isSelected ? const Color(0xFF2E8B57) : Colors.grey,
+            size: 24,
           ),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: TextStyle(
+              color: isSelected ? const Color(0xFF2E8B57) : Colors.grey,
+              fontSize: 12,
+              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+            ),
+          ),
         ],
       ),
     );

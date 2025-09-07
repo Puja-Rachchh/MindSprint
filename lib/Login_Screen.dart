@@ -31,7 +31,13 @@ class LoginScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
-        title: const Text('Login to MindSprint'),
+        title: const Row(
+          children: [
+            Icon(Icons.login, color: Colors.white),
+            SizedBox(width: 8),
+            Text('Login to NutriGo'),
+          ],
+        ),
         backgroundColor: const Color(0xFF2E8B57),
         foregroundColor: Colors.white,
         elevation: 0,

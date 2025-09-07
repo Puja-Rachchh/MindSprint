@@ -84,9 +84,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
-        title: const Text(
-          'Scan History',
-          style: TextStyle(fontWeight: FontWeight.bold),
+        title: const Row(
+          children: [
+            Icon(Icons.history, color: Colors.white),
+            SizedBox(width: 8),
+            Text('Scan History', style: TextStyle(fontWeight: FontWeight.bold)),
+          ],
         ),
         backgroundColor: const Color(0xFF2E8B57),
         foregroundColor: Colors.white,

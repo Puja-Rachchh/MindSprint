@@ -40,7 +40,9 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
 
     try {
       final response = await http.get(
-        Uri.parse('https://world.openfoodfacts.org/api/v0/product/$barcode.json'),
+        Uri.parse(
+          'https://world.openfoodfacts.org/api/v0/product/$barcode.json',
+        ),
       );
 
       if (response.statusCode == 200) {
@@ -65,9 +67,9 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
     setState(() {
       _isLoading = false;
     });
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   Widget _buildNutritionalInfo() {
@@ -82,10 +84,7 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            productName,
-            style: Theme.of(context).textTheme.headlineSmall,
-          ),
+          Text(productName, style: Theme.of(context).textTheme.headlineSmall),
           const SizedBox(height: 20),
           const Text(
             'Nutritional Information',
@@ -130,15 +129,14 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
   }
 
   Widget _buildNutrientRow(String label, dynamic value) {
-    final displayValue = value != null ? '\${value.toStringAsFixed(2)}g' : 'N/A';
+    final displayValue = value != null
+        ? '\${value.toStringAsFixed(2)}g'
+        : 'N/A';
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label),
-          Text(displayValue),
-        ],
+        children: [Text(label), Text(displayValue)],
       ),
     );
   }
@@ -147,37 +145,46 @@ class _BarcodeScannerScreenState extends State<BarcodeScannerScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Barcode Scanner'),
+        title: const Row(
+          children: [
+            Icon(Icons.qr_code_scanner, color: Colors.white),
+            SizedBox(width: 8),
+            Text('Barcode Scanner'),
+          ],
+        ),
+        backgroundColor: const Color(0xFF2E8B57),
+        foregroundColor: Colors.white,
+        elevation: 0,
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _isScanning
-              ? Column(
-                  children: [
-                    Expanded(
-                      child: MobileScanner(
-                        controller: cameraController,
-                        onDetect: (capture) {
-                          final List<Barcode> barcodes = capture.barcodes;
-                          for (final barcode in barcodes) {
-                            if (barcode.rawValue != null) {
-                              _fetchNutritionalInfo(barcode.rawValue!);
-                              return;
-                            }
-                          }
-                        },
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Text(
-                        'Point camera at food product barcode',
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                    ),
-                  ],
-                )
-              : _buildNutritionalInfo(),
+          ? Column(
+              children: [
+                Expanded(
+                  child: MobileScanner(
+                    controller: cameraController,
+                    onDetect: (capture) {
+                      final List<Barcode> barcodes = capture.barcodes;
+                      for (final barcode in barcodes) {
+                        if (barcode.rawValue != null) {
+                          _fetchNutritionalInfo(barcode.rawValue!);
+                          return;
+                        }
+                      }
+                    },
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text(
+                    'Point camera at food product barcode',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ),
+              ],
+            )
+          : _buildNutritionalInfo(),
     );
   }
 

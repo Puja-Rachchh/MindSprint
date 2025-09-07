@@ -54,7 +54,7 @@ class _HelpScreenState extends State<HelpScreen> {
   final List<FeatureGuide> _guides = [
     FeatureGuide(
       title: 'Getting Started',
-      description: 'Learn the basics of using MindSprint',
+      description: 'Learn the basics of using NutriGo',
       icon: Icons.play_circle,
       steps: [
         'Create your account and set up your profile',
@@ -109,9 +109,15 @@ class _HelpScreenState extends State<HelpScreen> {
       child: Scaffold(
         backgroundColor: const Color(0xFFF8F9FA),
         appBar: AppBar(
-          title: const Text(
-            'Help & Support',
-            style: TextStyle(fontWeight: FontWeight.bold),
+          title: const Row(
+            children: [
+              Icon(Icons.help_outline, color: Colors.white),
+              SizedBox(width: 8),
+              Text(
+                'Help & Support',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ],
           ),
           backgroundColor: const Color(0xFF2E8B57),
           foregroundColor: Colors.white,
@@ -245,7 +251,7 @@ class _GuidesTab extends StatelessWidget {
   final List<FeatureGuide> _guides = const [
     FeatureGuide(
       title: 'Getting Started',
-      description: 'Learn the basics of using MindSprint',
+      description: 'Learn the basics of using NutriGo',
       icon: Icons.play_circle,
       steps: [
         'Create your account and set up your profile',
@@ -442,7 +448,7 @@ class _ContactTab extends StatelessWidget {
             icon: Icons.email,
             title: 'Email Support',
             subtitle: 'Get help via email',
-            description: 'support@mindsprint.com',
+            description: 'support@nutrigo.com',
             onTap: () {
               // In a real app, this would open the email client
               ScaffoldMessenger.of(context).showSnackBar(
@@ -616,7 +622,7 @@ class _ContactTab extends StatelessWidget {
           ),
           title: const Text('Report a Bug'),
           content: const Text(
-            'To report a bug, please send us an email at support@mindsprint.com with:\n\n• Description of the issue\n• Steps to reproduce\n• Your device information\n• Screenshots (if applicable)',
+            'To report a bug, please send us an email at support@nutrigo.com with:\n\n• Description of the issue\n• Steps to reproduce\n• Your device information\n• Screenshots (if applicable)',
           ),
           actions: [
             ElevatedButton(
@@ -642,7 +648,7 @@ class _ContactTab extends StatelessWidget {
           ),
           title: const Text('Suggest a Feature'),
           content: const Text(
-            'We love hearing your ideas! Send us your feature suggestions at support@mindsprint.com.\n\nPlease include:\n• Detailed description\n• Why it would be helpful\n• Any mockups or examples',
+            'We love hearing your ideas! Send us your feature suggestions at support@nutrigo.com.\n\nPlease include:\n• Detailed description\n• Why it would be helpful\n• Any mockups or examples',
           ),
           actions: [
             ElevatedButton(

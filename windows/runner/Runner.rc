@@ -1,7 +1,12 @@
 // Microsoft Visual C++ generated resource script.
 //
 #pragma code_page(65001)
-#include "resource.h"
+#include "            VALUE "FileDescription", "nutrigo" "\0"
+            VALUE "FileVersion", VER_AS_STRING "\0"
+            VALUE "InternalName", "nutrigo" "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2023 com.example. All rights reserved." "\0"
+            VALUE "OriginalFilename", "nutrigo.exe" "\0"
+            VALUE "ProductName", "nutrigo" "\0"ce.h"
 
 #define APSTUDIO_READONLY_SYMBOLS
 /////////////////////////////////////////////////////////////////////////////

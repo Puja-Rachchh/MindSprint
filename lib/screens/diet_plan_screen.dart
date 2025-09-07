@@ -135,7 +135,13 @@ class _DietPlanScreenState extends State<DietPlanScreen> {
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: const Text('Diet Plan Generator'),
+        title: const Row(
+          children: [
+            Icon(Icons.restaurant_menu, color: Colors.white),
+            SizedBox(width: 8),
+            Text('Diet Plan Generator'),
+          ],
+        ),
         backgroundColor: const Color(0xFF2E8B57),
         foregroundColor: Colors.white,
         elevation: 0,

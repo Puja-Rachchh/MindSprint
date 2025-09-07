@@ -39,7 +39,13 @@ class _SigninScreenState extends State<SigninScreen> {
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
-        title: const Text('Sign Up - MindSprint'),
+        title: const Row(
+          children: [
+            Icon(Icons.person_add, color: Colors.white),
+            SizedBox(width: 8),
+            Text('Sign Up - NutriGo'),
+          ],
+        ),
         backgroundColor: const Color(0xFF2E8B57),
         foregroundColor: Colors.white,
         elevation: 0,

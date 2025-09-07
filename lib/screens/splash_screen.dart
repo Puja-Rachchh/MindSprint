@@ -101,7 +101,7 @@ class _SplashScreenState extends State<SplashScreen>
 
                       // App Name
                       const Text(
-                        'MindSprint',
+                        'NutriGo',
                         style: TextStyle(
                           fontSize: 32,
                           fontWeight: FontWeight.bold,
