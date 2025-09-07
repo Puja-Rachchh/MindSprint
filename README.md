@@ -5,6 +5,10 @@
 
 A **Flutter mobile application** that allows users to **scan product barcodes** and instantly view all **ingredients** of that product. The app includes **Firebase authentication** for secure login/sign-up and provides a **dashboard & detail screen** for displaying product information.  
 
+
+https://github.com/user-attachments/assets/652afd52-e0be-450f-a8e7-6cdbfa913fcb
+
+
 ---
 
 ## 🚀 Features  
@@ -82,4 +86,5 @@ flutter run
 🧑‍💻 Author
 
 Developed with ❤️ by Team MindSpirit
+
 
