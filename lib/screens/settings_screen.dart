@@ -21,9 +21,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
-        title: const Text(
-          'Settings',
-          style: TextStyle(fontWeight: FontWeight.bold),
+        title: const Row(
+          children: [
+            Icon(Icons.settings, color: Colors.white),
+            SizedBox(width: 8),
+            Text('Settings', style: TextStyle(fontWeight: FontWeight.bold)),
+          ],
         ),
         backgroundColor: const Color(0xFF2E8B57),
         foregroundColor: Colors.white,
@@ -437,7 +440,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       context: context,
       builder: (BuildContext context) {
         return AboutDialog(
-          applicationName: 'MindSprint',
+          applicationName: 'NutriGo',
           applicationVersion: '1.0.0',
           applicationIcon: const Icon(
             Icons.qr_code_scanner,
@@ -448,7 +451,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             Text('Scan Smart, Eat Healthy'),
             SizedBox(height: 10),
             Text(
-              'MindSprint helps you make informed food choices by scanning barcodes and providing detailed nutritional information.',
+              'NutriGo helps you make informed food choices by scanning barcodes and providing detailed nutritional information.',
             ),
           ],
         );

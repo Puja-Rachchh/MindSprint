@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:mindsprint/Dashboard_Screen.dart';
-import 'package:mindsprint/Login_Screen.dart'; // Adjust imports to your project structure
+import 'Dashboard_Screen.dart';
+import 'Login_Screen.dart'; // Adjust imports to your project structure
 
 class SigninScreen extends StatefulWidget {
   const SigninScreen({super.key});
@@ -62,63 +62,121 @@ class _SigninScreenState extends State<SigninScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Sign Up - MindSprint')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
+      backgroundColor: Colors.grey.shade50,
+      appBar: AppBar(
+        title: const Row(
           children: [
-            TextField(
-              controller: nameController,
-              decoration: const InputDecoration(labelText: 'Name'),
-            ),
-            TextField(
-              controller: petController,
-              decoration: const InputDecoration(labelText: 'Pet Name'),
-            ),
-            TextField(
-              controller: emailController,
-              decoration: const InputDecoration(labelText: 'Email'),
-            ),
-            TextField(
-              controller: passwordController,
-              decoration: const InputDecoration(labelText: 'Password'),
-              obscureText: true,
-            ),
-            TextField(
-              controller: confirmController,
-              decoration: const InputDecoration(labelText: 'Confirm Password'),
-              obscureText: true,
-            ),
-            TextField(
-              controller: ageController,
-              decoration: const InputDecoration(labelText: 'Age'),
-            ),
-            DropdownButtonFormField<String>(
-              value: selectedGender,
-              items: genderOptions
-                  .map(
-                    (gender) =>
-                        DropdownMenuItem(value: gender, child: Text(gender)),
-                  )
-                  .toList(),
-              onChanged: (val) => setState(() => selectedGender = val),
-              decoration: const InputDecoration(labelText: 'Gender'),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _registerUser,
-              child: const Text('Register'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(
-                  context,
-                ).push(MaterialPageRoute(builder: (context) => LoginScreen()));
-                // Use route or named page
-              },
-              child: const Text('Already have an account? Login'),
-            ),
+            Icon(Icons.person_add, color: Colors.white),
+            SizedBox(width: 8),
+            Text('Sign Up - MindSprint'),
           ],
+        ),
+        backgroundColor: const Color(0xFF2E8B57),
+        foregroundColor: Colors.white,
+        elevation: 0,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(
+                  labelText: 'Name',
+                  prefixIcon: Icon(Icons.person, color: Color(0xFF2E8B57)),
+                  border: OutlineInputBorder(),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF2E8B57), width: 2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: petController,
+                decoration: const InputDecoration(
+                  labelText: 'Pet Name',
+                  prefixIcon: Icon(Icons.pets, color: Color(0xFF2E8B57)),
+                  border: OutlineInputBorder(),
+                  focusedBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: Color(0xFF2E8B57), width: 2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: emailController,
+                decoration: const InputDecoration(
+                  labelText: 'Email',
+                  border: OutlineInputBorder(),
+                ),
+                keyboardType: TextInputType.emailAddress,
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: passwordController,
+                decoration: const InputDecoration(
+                  labelText: 'Password',
+                  border: OutlineInputBorder(),
+                ),
+                obscureText: true,
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: confirmController,
+                decoration: const InputDecoration(
+                  labelText: 'Confirm Password',
+                  border: OutlineInputBorder(),
+                ),
+                obscureText: true,
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: ageController,
+                decoration: const InputDecoration(
+                  labelText: 'Age',
+                  border: OutlineInputBorder(),
+                ),
+                keyboardType: TextInputType.number,
+              ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<String>(
+                decoration: const InputDecoration(
+                  labelText: 'Gender',
+                  border: OutlineInputBorder(),
+                ),
+                value: selectedGender,
+                items: genderOptions
+                    .map(
+                      (gender) =>
+                          DropdownMenuItem(value: gender, child: Text(gender)),
+                    )
+                    .toList(),
+                onChanged: (val) => setState(() => selectedGender = val),
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: _registerUser,
+                child: const Text('Register'),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text('Already have an account? '),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (context) => LoginScreen()),
+                      );
+                    },
+                    child: const Text('Login'),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

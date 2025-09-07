@@ -16,9 +16,15 @@ class ProductDetailsScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
       appBar: AppBar(
-        title: const Text(
-          'Product Details',
-          style: TextStyle(fontWeight: FontWeight.bold),
+        title: const Row(
+          children: [
+            Icon(Icons.info_outline, color: Colors.white),
+            SizedBox(width: 8),
+            Text(
+              'Product Details',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ],
         ),
         backgroundColor: const Color(0xFF2E8B57),
         foregroundColor: Colors.white,

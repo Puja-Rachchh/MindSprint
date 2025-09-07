@@ -43,29 +43,75 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Login - MindSprint')),
+      backgroundColor: Colors.grey.shade50,
+      appBar: AppBar(
+        title: const Row(
+          children: [
+            Icon(Icons.login, color: Colors.white),
+            SizedBox(width: 8),
+            Text('Login - MindSprint'),
+          ],
+        ),
+        backgroundColor: const Color(0xFF2E8B57),
+        foregroundColor: Colors.white,
+        elevation: 0,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             TextField(
               controller: emailController,
-              decoration: const InputDecoration(labelText: 'Email'),
+              decoration: const InputDecoration(
+                labelText: 'Email',
+                prefixIcon: Icon(Icons.email, color: Color(0xFF2E8B57)),
+                border: OutlineInputBorder(),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF2E8B57), width: 2),
+                ),
+              ),
+              keyboardType: TextInputType.emailAddress,
             ),
+            const SizedBox(height: 16),
             TextField(
               controller: passwordController,
-              decoration: const InputDecoration(labelText: 'Password'),
+              decoration: const InputDecoration(
+                labelText: 'Password',
+                prefixIcon: Icon(Icons.lock, color: Color(0xFF2E8B57)),
+                border: OutlineInputBorder(),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Color(0xFF2E8B57), width: 2),
+                ),
+              ),
               obscureText: true,
             ),
-            const SizedBox(height: 20),
-            ElevatedButton(onPressed: _loginUser, child: const Text('Login')),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(builder: (context) => const SigninScreen()),
-                );
-              },
-              child: const Text('Don\'t have an account? Register'),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: _loginUser,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF2E8B57),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+              ),
+              child: const Text('Login'),
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text("Don't have an account? "),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(
+                        builder: (context) => const SigninScreen(),
+                      ),
+                    );
+                  },
+                  child: const Text('Register'),
+                ),
+              ],
             ),
           ],
         ),

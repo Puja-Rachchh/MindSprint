@@ -78,7 +78,13 @@ class _DetailScreenState extends State<DetailScreen> {
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
-        title: const Text('Complete Your Profile'),
+        title: const Row(
+          children: [
+            Icon(Icons.edit_note, color: Colors.white),
+            SizedBox(width: 8),
+            Text('Complete Your Profile'),
+          ],
+        ),
         backgroundColor: const Color(0xFF2E8B57),
         foregroundColor: Colors.white,
         elevation: 0,
@@ -158,7 +164,6 @@ class _DetailScreenState extends State<DetailScreen> {
                       ),
                     ],
                   ),
-
                   const SizedBox(height: 16),
                   Row(
                     children: [

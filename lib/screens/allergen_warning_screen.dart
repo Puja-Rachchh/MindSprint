@@ -20,9 +20,15 @@ class AllergenWarningScreen extends StatelessWidget {
           ? const Color(0xFFFFF5F5)
           : const Color(0xFFF0FDF4),
       appBar: AppBar(
-        title: const Text(
-          'Allergen Report',
-          style: TextStyle(fontWeight: FontWeight.bold),
+        title: const Row(
+          children: [
+            Icon(Icons.warning, color: Colors.white),
+            SizedBox(width: 8),
+            Text(
+              'Allergen Report',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ],
         ),
         backgroundColor: hasAllergens
             ? const Color(0xFFE53E3E)
